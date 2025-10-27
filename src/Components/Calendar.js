@@ -17,34 +17,25 @@ const Events = [
     {date:"2025-11-28", title: "Boardgames night", color: "blue"},
 ];
 
-const startOfMonth =(d) => new Date(d.getFullYear(), d.getMonth(), 1);
-const endOfMonth =(d) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
-const addMonths =(d, n) => new Date(d.getFullYear(), d.getMonth() + n, 1);
-const weekdayMonStart =(weekday) => (weekday) => (weekday === 0?7: weekday);
 
-function buildGrid(current){
-    const first = startOfMonth(current);
-    const last = endOfMonth(current);
-    const daysInMonth=last.getDate();
-    const start = weekdayMonStart(first.getDate());
-
+function buildGrid(current) {
+    const first = new Date(current.getFullYear(), current.getMonth(), 1);
+    const mondayOffset = (first.getDay() + 6) % 7;
+    const start = new Date(first);
+    start.setDate(first.getDate() - mondayOffset);
     const cells = [];
-    for(let i=1; i<start;i++) cells.push(null);
-    for(let d=1;d<=daysInMonth;d++){
-        cells.push(new Date(current.getFullYear(), current.getMonth(), d));
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      cells.push(d);
     }
+    return cells;
+  }
 
-    
-    while(cells.length<42){
-        const next=new Date(
-            current.getFullYear(),
-            current.getMonth(),
-            cells.length-(start-1)
-        );
-        cells.push(next);
-    }
-    return cells.slice(0,42);
-}
+  function addMonths(date, n){
+    return new Date(date.getFullYear(), date.getMonth()+n,1);
+  }
+  
 
 function eventsOn(date){
     const y = date.getFullYear();
@@ -66,28 +57,33 @@ export default function Calendar(){
         <div className="page">
             <h1 className="h1">Calendar</h1>
 
-            {/* month navigation*/}
+            <div className="chips">
+                <span className="chip">Arts &amp; Culture</span>
+                <span className="chip">Sports &amp; Fitness</span>
+                <span className="chip">Hobbies &amp; Lifestyle</span>
+                <span className="chip">Party</span>
+                <span className="chip">Registered events</span>
+            </div>
+
             <div className="headerBar">
                 <div className="arrow" onClick={()=> setCursor(addMonths(cursor, -1))}>
                 ←
                 </div>
                 <strong>{label}</strong>
-                <div className="arrow" onClick={() => (addMonths(cursor,1))}>
+                <div className="arrow" onClick={() => setCursor(addMonths(cursor,1))}>
                 →
             </div>
         </div>
 
-        {/* weekday labels*/}
+
         <div className="weekdays">
             {weekdays.map((w)=>(
             <div key ={w}>{w}</div>))}
         </div>
 
-        {/* 7x6 grid*/}
+     
         <div className="grid">
             {grid.map((date, i)=>{
-                if(!date) return <div key = {i} className="cell out"/>;
-
             const out = date.getMonth() !==monthIndex;
             const dayEvents=eventsOn(date);
 
@@ -95,7 +91,7 @@ export default function Calendar(){
               <div key={i} className={'cell${out?"out":""}'}>
                 <div className="day">{date.getDate()}</div> 
                 <div className="pills">
-                    {dayEvents.map((ev, j) =>(
+                    {eventsOn(date).map((ev, j) =>(
                         <div key={j} className={'pill${ev.color}'}>
                             {ev.title}
                     </div> 
