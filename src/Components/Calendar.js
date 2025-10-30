@@ -5,7 +5,7 @@ import "../css/Calendar.css";
 const Events = [
     {date:"2025-11-02", title: "Padel", color: "green"},
     {date:"2025-11-02", title: "Boardgames night", color: "blue"},
-    {date:"2025-11-04", title: "Basketball game", color: "grey"},
+    {date:"2025-11-04", title: "Basketball game", color: "gray"},
     {date:"2025-11-05", title: "Boardgames night", color: "blue"},
     {date:"2025-11-06", title: "Boardgames night", color: "blue"},
     {date:"2025-11-09", title: "Padel", color: "green"},
@@ -16,7 +16,6 @@ const Events = [
     {date:"2025-11-23", title: "Padel", color: "green"},
     {date:"2025-11-28", title: "Boardgames night", color: "blue"},
 ];
-
 
 function buildGrid(current) {
     const first = new Date(current.getFullYear(), current.getMonth(), 1);
@@ -41,7 +40,7 @@ function eventsOn(date){
     const y = date.getFullYear();
     const m = String(date.getMonth()+1).padStart(2,"0");
     const d = String(date.getDate()).padStart(2,"0");
-    const key = '${y}-${m}-${d}';
+    const key = `${y}-${m}-${d}`;
     return Events.filter((e) => e.date === key);
 }
 
@@ -66,15 +65,23 @@ export default function Calendar(){
             </div>
 
             <div className="headerBar">
-                <div className="arrow" onClick={()=> setCursor(addMonths(cursor, -1))}>
-                ←
-                </div>
-                <strong>{label}</strong>
-                <div className="arrow" onClick={() => setCursor(addMonths(cursor,1))}>
-                →
-            </div>
-        </div>
+  <div className="left">
+    <button
+      type="button"
+      className="arrow"
+      onClick={() => setCursor(addMonths(cursor, -1))}
+      aria-label="Previous month">
+      ←</button>
+    <span className="monthLabel">{label}</span>
+  </div>
 
+  <button
+    type="button"
+    className="arrow"
+    onClick={() => setCursor(addMonths(cursor, 1))}
+    aria-label="Next month">
+    →</button>
+</div>
 
         <div className="weekdays">
             {weekdays.map((w)=>(
@@ -88,11 +95,11 @@ export default function Calendar(){
             const dayEvents=eventsOn(date);
 
             return (
-              <div key={i} className={'cell${out?"out":""}'}>
+              <div className={'cell${out?"out":""}'}>
                 <div className="day">{date.getDate()}</div> 
                 <div className="pills">
                     {eventsOn(date).map((ev, j) =>(
-                        <div key={j} className={'pill${ev.color}'}>
+                        <div key={j} className={`pill ${ev.color}`}>
                             {ev.title}
                     </div> 
                 ))}
