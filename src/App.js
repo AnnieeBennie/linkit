@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./Components/Header";
+import Events from "./Pages/Events";
 
 function App() {
   return (
@@ -9,7 +10,7 @@ function App() {
       <Routes>
         <Route path="/clubs" element={<div>Clubs Page</div>} />
         <Route path="/calendar" element={<div>Calendar Page</div>} />
-        <Route path="/events" element={<div>Events Page</div>} />
+        <Route path="/events" element={<Events />} />
         <Route path="/chats" element={<div>Chats Page</div>} />
         <Route path="/settings" element={<div>Settings Page</div>} />
         <Route path="/home" element={<div>Home Page</div>} />
