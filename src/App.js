@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./Components/Header";
+import Calendar from "./Components/Calendar";
 import Clubs from "./Clubs.js";
 import Events from "./Pages/Events";
 
@@ -9,8 +10,8 @@ function App() {
     <Router>
       <Header />
       <Routes>
+        <Route path="/calendar" element={<Calendar />} />
         <Route path="/clubs" element={<Clubs/>} />
-        <Route path="/calendar" element={<div>Calendar Page</div>} />
         <Route path="/events" element={<Events />} />
         <Route path="/chats" element={<div>Chats Page</div>} />
         <Route path="/settings" element={<div>Settings Page</div>} />
