@@ -1,0 +1,36 @@
+:root {
+  --card-width: 232px;
+  --card-height: 390px;
+  --row-gap: 50px;
+  --column-gap: 32px;
+  --grid-margin-x: 208px;
+  --column-gap: 32px;
+}
+
+.events-Container {
+  background-color: var(--beige);
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 50px;
+}
+
+.PageTitle {
+  font-family: "Inter";
+  font-size: 34px;
+  font-style: extra-bold;
+  font-weight: 800;
+  color: var(--dark_blue);
+  margin: 35px 0px 45px var(--grid-margin-x);
+}
+
+.events-grid {
+  margin: 0 var(--grid-margin-x);
+  margin-bottom: 40px;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--card-width));
+  column-gap: var(--column-gap);
+  row-gap: var(--row-gap);
+  justify-content: space-between;
+}
