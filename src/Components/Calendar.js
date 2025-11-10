@@ -1,5 +1,6 @@
-import React, {use, useMemo, useState} from "react";
+import React, {useMemo, useState} from "react";
 import "../css/Calendar.css";
+import CalendarButton from "../Components/CalendarButton";
 
 
 const Events = [
@@ -34,7 +35,7 @@ function buildGrid(current) {
   function addMonths(date, n){
     return new Date(date.getFullYear(), date.getMonth()+n,1);
   }
-  
+
 
 function eventsOn(date){
     const y = date.getFullYear();
@@ -66,21 +67,21 @@ export default function Calendar(){
 
             <div className="headerBar">
   <div className="left">
-    <button
-      type="button"
-      className="arrow"
-      onClick={() => setCursor(addMonths(cursor, -1))}
-      aria-label="Previous month">
-      ←</button>
-    <span className="monthLabel">{label}</span>
-  </div>
+    <CalendarButton
+    ariaLabel="Previous month"
+    onClick={()=> setCursor(addMonths(cursor,-1))}
+    >
+      ←
+    </CalendarButton>
 
-  <button
-    type="button"
-    className="arrow"
-    onClick={() => setCursor(addMonths(cursor, 1))}
-    aria-label="Next month">
-    →</button>
+  <span className="monthLabel">{label}</span>
+</div>
+<CalendarButton
+ariaLabel="Next month"
+onClick={()=> setCursor(addMonths(cursor,1))}
+>
+→
+</CalendarButton>
 </div>
 
         <div className="weekdays">
@@ -88,17 +89,17 @@ export default function Calendar(){
             <div key ={w}>{w}</div>))}
         </div>
 
-     
+
         <div className="grid">
             {grid.map((date, i)=>{
             const out = date.getMonth() !==monthIndex;
             const dayEvents=eventsOn(date);
 
             return (
-              <div className={'cell${out?"out":""}'}>
+              <div className={`cell${out ? " out" : ""}`}>
                 <div className="day">{date.getDate()}</div> 
                 <div className="pills">
-                    {eventsOn(date).map((ev, j) =>(
+                    {dayEvents.map((ev, j) =>(
                         <div key={j} className={`pill ${ev.color}`}>
                             {ev.title}
                     </div> 
@@ -111,6 +112,7 @@ export default function Calendar(){
         </div>
     );
 };
+
 
 
 
