@@ -1,4 +1,4 @@
-.event-card {
+.event-card, .club-card {
   display: flex;
   width: 232px;
   height: 390px;
@@ -6,7 +6,7 @@
   align-items: flex-start;
   gap: 12px;
 }
-.event-image {
+.event-image, .club-image {
   width: 232px;
   height: 232px;
   object-fit: cover;
