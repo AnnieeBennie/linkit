@@ -53,9 +53,15 @@ function Clubs() {
 
       {/* Clubs grid */}
       <div className="clubs-grid">
-        {filteredClubs.map((club) => (
-          <ClubCard key={club.id} club={club} onToggleJoin={toggleJoin} />
-        ))}
+        {filteredClubs.length > 0 ? (
+          filteredClubs.map((club) => (
+            <ClubCard key={club.id} club={club} onToggleJoin={toggleJoin} />
+          ))
+        ) : (
+          <div className="no-results">
+            <p>No clubs found</p>
+          </div>
+        )}
       </div>
     </div>
   );
