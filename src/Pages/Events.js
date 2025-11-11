@@ -16,7 +16,7 @@ import designImage from "../Images/Design.png";
 function Events() {
   const events = [
     {
-      id: "event-1",
+      id: 1,
       title: "Padel game",
       category: "Sports & Fitness",
       organizer: "ITU Padel",
@@ -25,7 +25,7 @@ function Events() {
       image: padelImage,
     },
     {
-      id: "event-2",
+      id: 2,
       title: "Scroll Bar Party",
       category: "Party",
       organizer: "Scroll Bar",
@@ -34,7 +34,7 @@ function Events() {
       image: scrollBarImage,
     },
     {
-      id: "event-3",
+      id: 3,
       title: "Boardgames night",
       category: "Hobbies & Lifestyle",
       organizer: "ConnectIT",
@@ -43,7 +43,7 @@ function Events() {
       image: boardgamesImage,
     },
     {
-      id: "event-4",
+      id: 4,
       title: "Book Club night",
       category: "Arts & Culture",
       organizer: "BookIT",
@@ -52,7 +52,7 @@ function Events() {
       image: bookImage,
     },
     {
-      id: "event-5",
+      id: 5,
       title: "Knitting Together",
       category: "Hobbies & Lifestyle",
       organizer: "KnitIT",
@@ -61,7 +61,7 @@ function Events() {
       image: knitingImage,
     },
     {
-      id: "event-6",
+      id: 6,
       title: "Quiz Night",
       category: "Hobbies & Lifestyle",
       organizer: "Analog & Node",
@@ -70,7 +70,7 @@ function Events() {
       image: quizImage,
     },
     {
-      id: "event-7",
+      id: 7,
       title: "Football Training",
       category: "Sports & Fitness",
       organizer: "ITU Active",
@@ -79,7 +79,7 @@ function Events() {
       image: footballImage,
     },
     {
-      id: "event-8",
+      id: 8,
       title: "Design event",
       category: "Arts & Culture",
       organizer: "DAK",
