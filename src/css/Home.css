@@ -205,9 +205,10 @@ body {
   cursor: not-allowed;
 }
 
-/* Removing old boxed card style */
-.event-card,
-.club-card {
+/* Removing old boxed card style only for horizontal rows */
+/* Limit the rule to `.hrow` so it doesn't globally strip card styles elsewhere */
+.hrow .event-card,
+.hrow .club-card {
   border: none !important;
   background: transparent !important;
 }

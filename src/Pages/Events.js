@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../css/Events.css";
 import EventCard from "../Components/EventCard";
 import EventFilter from "../Components/EventFilter";
@@ -12,89 +12,90 @@ import knitingImage from "../Images/Knitting.png";
 import quizImage from "../Images/Quiz.png";
 import footballImage from "../Images/Football.png";
 import designImage from "../Images/Design.png";
+import { fetchEvents } from "../services/eventService";
 
 function Events() {
-  const events = [
-    {
-      title: "Padel game",
-      category: "Sports & Fitness",
-      organizer: "ITU Padel",
-      date: "10/10/25 | 14:45 - 16:00",
-      location: "Raffinaderivej 20, 2300 København",
-      image: padelImage,
-    },
-    {
-      title: "Scroll Bar Party",
-      category: "Party",
-      organizer: "Scroll Bar",
-      date: "10/10/25 | 18:00 - 23:00",
-      location: "ITU Scroll bar",
-      image: scrollBarImage,
-    },
-    {
-      title: "Boardgames night",
-      category: "Hobbies & Lifestyle",
-      organizer: "ConnectIT",
-      date: "13/10/25 | 17:00 - 20:00",
-      location: "Aud. 3A52",
-      image: boardgamesImage,
-    },
-    {
-      title: "Book Club night",
-      category: "Arts & Culture",
-      organizer: "BookIT",
-      date: "14/10/25 | 18:00 - 21:00",
-      location: "Aud. 2A14",
-      image: bookImage,
-    },
-    {
-      title: "Knitting Together",
-      category: "Hobbies & Lifestyle",
-      organizer: "KnitIT",
-      date: "15/10/25 | 15:00 - 18:00",
-      location: "Aud. 3A14",
-      image: knitingImage,
-    },
-    {
-      title: "Quiz Night",
-      category: "Hobbies & Lifestyle",
-      organizer: "Analog & Node",
-      date: "15/10/25 | 16:00 - 20:00",
-      location: "Analog cafe",
-      image: quizImage,
-    },
-    {
-      title: "Football Training",
-      category: "Sports & Fitness",
-      organizer: "ITU Active",
-      date: "15/10/25 | 18:00 - 20:00",
-      location: "Raffinaderivej 20, 2300 København",
-      image: footballImage,
-    },
-    {
-      title: "Design event",
-      category: "Arts & Culture",
-      organizer: "DAK",
-      date: "16/10/25 | 15:00 - 16:00",
-      location: "Aud. 2A52",
-      image: designImage,
-    },
-  ];
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadEvents() {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchEvents();
+        if (!mounted) return;
+        const mapped = data.map((e) => ({
+          ...e,
+          image:
+            e.image ||
+            (e.title &&
+              e.title.toLowerCase().includes("padel") &&
+              padelImage) ||
+            (e.title &&
+              e.title.toLowerCase().includes("scroll") &&
+              scrollBarImage) ||
+            (e.title &&
+              e.title.toLowerCase().includes("board") &&
+              boardgamesImage) ||
+            (e.title && e.title.toLowerCase().includes("book") && bookImage) ||
+            (e.title &&
+              e.title.toLowerCase().includes("knitt") &&
+              knitingImage) ||
+            (e.title && e.title.toLowerCase().includes("quiz") && quizImage) ||
+            (e.title &&
+              e.title.toLowerCase().includes("football") &&
+              footballImage) ||
+            (e.title &&
+              e.title.toLowerCase().includes("design") &&
+              designImage) ||
+            undefined,
+        }));
+        setEvents(mapped);
+        setLoading(false);
+      } catch (err) {
+        console.error("loadEvents error", err);
+        if (mounted) {
+          setError(err);
+          setLoading(false);
+        }
+      }
+    }
+
+    loadEvents();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
-    <div className="events-Container">
-      <EventFilter events={events}>
-        {(filteredEvents) => (
-          <>
-            <div className="PageTitle">Upcoming Events</div>
-            <div className="events-grid">
-              {filteredEvents.map((event, index) => (
-                <EventCard key={index} event={event} />
-              ))}
-            </div>
-          </>
-        )}
-      </EventFilter>
+    <div className="events-container">
+      {loading ? (
+        <div className="PageTitle">Loading events…</div>
+      ) : error ? (
+        <div className="PageTitle">Failed to load events</div>
+      ) : (
+        <EventFilter events={events}>
+          {(filteredEvents) => (
+            <>
+              <div className="PageTitle">Upcoming Events</div>
+              {filteredEvents.length > 0 ? (
+                <div className="events-grid">
+                  {filteredEvents.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              ) : (
+                <div className="no-results">No matches for your filter</div>
+              )}
+            </>
+          )}
+        </EventFilter>
+      )}
     </div>
   );
 }
