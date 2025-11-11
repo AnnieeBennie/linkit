@@ -2,7 +2,7 @@
 .club-card {
   display: flex;
   width: 247px;
-  height: 402px;
+  height: 405px;
   flex-direction: column;
   align-items: flex-start;
   padding: 7px;
