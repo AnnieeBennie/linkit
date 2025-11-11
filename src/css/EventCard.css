@@ -1,4 +1,4 @@
-.event-card {
+.event-card, .club-card {
   display: flex;
   width: 249px;
   height: 407px;
@@ -10,7 +10,7 @@
   border-radius: 8px;
   border: 1px solid var(--orange);
 }
-.event-image {
+.event-image, .club-image {
   width: 232px;
   height: 232px;
   object-fit: cover;
@@ -52,7 +52,7 @@
   display: block;
 }
 
-.signup-button {
+.signup-button, .join-btn{
   background-color: var(--orange);
   color: var(--beige);
   display: flex;
@@ -72,6 +72,6 @@
   margin-bottom: 5px;
 }
 
-.signup-button:hover {
+.signup-button:hover, .join-btn:hover {
   background-color: var(--dark_blue);
 }

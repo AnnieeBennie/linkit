@@ -23,7 +23,7 @@
   margin: 35px 0px 45px var(--grid-margin-x);
 }
 
-.events-grid {
+.events-grid, .clubs-grid {
   margin: 0 var(--grid-margin-x);
   margin-bottom: 40px;
   position: relative;
