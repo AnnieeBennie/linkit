@@ -1,16 +1,21 @@
 .event-card {
   display: flex;
-  width: 232px;
-  height: 390px;
+  width: 249px;
+  height: 407px;
+  padding: 8px;
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
+  background-color: var(--dark_beige);
+  border-radius: 8px;
+  border: 1px solid var(--orange);
 }
 .event-image {
   width: 232px;
   height: 232px;
   object-fit: cover;
   border-radius: 8px;
+  margin: 0px;
 }
 
 .event-container {
@@ -64,6 +69,7 @@
   border-radius: 6px;
   cursor: pointer;
   margin-top: 12px;
+  margin-bottom: 5px;
 }
 
 .signup-button:hover {

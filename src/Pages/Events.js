@@ -16,6 +16,7 @@ import designImage from "../Images/Design.png";
 function Events() {
   const events = [
     {
+      id: "event-1",
       title: "Padel game",
       category: "Sports & Fitness",
       organizer: "ITU Padel",
@@ -24,6 +25,7 @@ function Events() {
       image: padelImage,
     },
     {
+      id: "event-2",
       title: "Scroll Bar Party",
       category: "Party",
       organizer: "Scroll Bar",
@@ -32,6 +34,7 @@ function Events() {
       image: scrollBarImage,
     },
     {
+      id: "event-3",
       title: "Boardgames night",
       category: "Hobbies & Lifestyle",
       organizer: "ConnectIT",
@@ -40,6 +43,7 @@ function Events() {
       image: boardgamesImage,
     },
     {
+      id: "event-4",
       title: "Book Club night",
       category: "Arts & Culture",
       organizer: "BookIT",
@@ -48,6 +52,7 @@ function Events() {
       image: bookImage,
     },
     {
+      id: "event-5",
       title: "Knitting Together",
       category: "Hobbies & Lifestyle",
       organizer: "KnitIT",
@@ -56,6 +61,7 @@ function Events() {
       image: knitingImage,
     },
     {
+      id: "event-6",
       title: "Quiz Night",
       category: "Hobbies & Lifestyle",
       organizer: "Analog & Node",
@@ -64,6 +70,7 @@ function Events() {
       image: quizImage,
     },
     {
+      id: "event-7",
       title: "Football Training",
       category: "Sports & Fitness",
       organizer: "ITU Active",
@@ -72,6 +79,7 @@ function Events() {
       image: footballImage,
     },
     {
+      id: "event-8",
       title: "Design event",
       category: "Arts & Culture",
       organizer: "DAK",
@@ -82,16 +90,20 @@ function Events() {
   ];
 
   return (
-    <div className="events-Container">
+    <div className="events-container">
       <EventFilter events={events}>
         {(filteredEvents) => (
           <>
             <div className="PageTitle">Upcoming Events</div>
-            <div className="events-grid">
-              {filteredEvents.map((event, index) => (
-                <EventCard key={index} event={event} />
-              ))}
-            </div>
+            {filteredEvents.length > 0 ? (
+              <div className="events-grid">
+                {filteredEvents.map((event) => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+            ) : (
+              <div className="no-results">No matches for your filter</div>
+            )}
           </>
         )}
       </EventFilter>
