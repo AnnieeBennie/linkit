@@ -1,8 +1,8 @@
 // src/Pages/Clubs.js
 import React, { useState } from "react";
-import "./css/Colors.css";
-import "./css/Clubs.css";
-import ClubCard from "./Components/ClubCard";
+import "../css/Colors.css";
+import "../css/Clubs.css";
+import ClubCard from "../Components/ClubCard";
 
 const categories = ["All", "Arts & Culture", "Sports & Fitness", "Hobbies & Lifestyle", "My Clubs"];
 
