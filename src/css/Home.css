@@ -1,4 +1,3 @@
-/* Defining the consostent core colors, spacing and layout sizes across the page*/
 :root {
   --content-max: 1200px;
   --navy: #0f2e67;
@@ -8,17 +7,16 @@
   --bg: #fbf7f1;
   --rail: #e95c3a;
   --card-w: 300px;
-  --gap: 30px;
   --img-radius: 12px;
 }
 
-/* Main page background and text*/
 body {
   background: var(--bg);
   color: var(--text);
   margin: 0;
 }
-/* Announcemnet bar - Blue banner:"Heyyy! Don't forget to join today’s events!"*/
+
+/* Banner */
 .announcement {
   background: var(--navy);
   color: #fff;
@@ -26,36 +24,32 @@ body {
   display: flex;
   align-items: center;
   height: 52px;
-  padding-inline: calc(
-    (100vw - var(--content-max)) / 2 + 24px
-  ); /*Aligning text with page */
+  padding-inline: calc((100vw - var(--content-max)) / 2 + 24px);
 }
-/*Main container for content ,limiting the content width*/
+
+/* Layout */
 .container {
   max-width: var(--content-max);
   margin: 0 auto;
   padding: 24px;
 }
 
-/* Titles for the sections */
+/* Titles */
 .section-title {
   margin: 24px 0 12px;
 }
-
-/*Ornage text: Yooo, Welcome!*/
 .section-title.h1 {
   font-size: 44px;
   color: var(--coral);
   font-weight: 800;
 }
-/*Dark blue section headings*/
 .section-title.h2 {
   font-size: 32px;
   font-weight: 800;
   color: var(--text);
 }
 
-/* Scrollable club/event rows */
+/* Horizontal scrolling rows */
 .hrow {
   display: flex;
   align-items: stretch;
@@ -64,20 +58,16 @@ body {
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
 
-  /*top orange line*/
-
-  border-top: 2px solid var(--rail);
   margin-top: 10px;
   padding-top: 10px;
 
   list-style: none;
   padding-left: 0;
   margin: 0;
-
   position: relative;
 }
 
-/*hiding the scrollbar*/
+/* hide scrollbar */
 .hrow {
   scrollbar-width: none;
 }
@@ -95,37 +85,16 @@ body {
   scroll-snap-align: start;
 }
 
-/* middle seperation between "cards" */
 .sep {
-  position: relative;
-  width: var(--gap);
-  flex: 0 0 var(--gap);
-}
-.sep::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: -14px;
-  height: calc(100% + 14px);
-  width: 2px;
-  background: var(--rail);
-}
-
-/* vertical lines at edges */
-.cap {
   position: relative;
   width: 0;
   flex: 0 0 0;
 }
-.cap::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: -14px;
-  height: calc(100% + 14px);
-  width: 2px;
-  background: var(--rail);
+
+.cap {
+  position: relative;
+  width: 0;
+  flex: 0 0 0;
 }
 .cap--left {
   margin-left: 0;
@@ -134,7 +103,6 @@ body {
   margin-right: 0;
 }
 
-/* Style of event/club cards*/
 .card {
   position: relative;
   background: transparent;
@@ -150,7 +118,7 @@ body {
   border-radius: var(--img-radius);
   display: block;
 }
-/* Card content*/
+
 .card-body {
   padding-top: 20px;
 }
@@ -173,27 +141,7 @@ body {
 .dot {
   opacity: 0.6;
 }
-/* Lightblue Category "pill"*/
-.filter-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 36px;
-  background: #e7f0ff;
-  color: var(--navy);
-  font-weight: 800;
-  font-size: 17px;
-  line-height: 1.1;
-  border-radius: 12px;
-  padding: 10px 16px;
-  margin: 8px 0 10px;
-  position: relative;
-  z-index: 4;
-}
-.filter-item {
-  white-space: nowrap;
-}
-/* Buttons */
+
 .btn-primary {
   margin-top: 10px;
   background: var(--coral);
@@ -205,9 +153,14 @@ body {
   cursor: not-allowed;
 }
 
-/* Removing old boxed card style */
-.event-card,
-.club-card {
-  border: none !important;
-  background: transparent !important;
+/* Align eventfilter with title and make */
+/*Also made it non-interactive for sprint 1 feedback implemenation*/
+.home .EventFilter {
+  margin: 16px 0 0;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.home .sep {
+  display: none;
 }
