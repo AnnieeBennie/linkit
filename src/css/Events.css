@@ -7,7 +7,7 @@
   --column-gap: 32px;
 }
 
-.events-Container {
+.events-container {
   background-color: var(--beige);
   display: flex;
   flex-direction: column;
@@ -33,4 +33,12 @@
   column-gap: var(--column-gap);
   row-gap: var(--row-gap);
   justify-content: space-between;
+}
+
+.no-results {
+  font-family: "Inter";
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--dark_blue);
+  margin: 35px 0px 45px var(--grid-margin-x);
 }
