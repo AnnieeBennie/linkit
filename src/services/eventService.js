@@ -91,6 +91,7 @@ export async function fetchEvents() {
         image: imageUrl,
         _startDate: startDate || null,
         _endDate: endDate || null,
+        description: o.get("event_description") || "",
       };
     });
   } catch (err) {
