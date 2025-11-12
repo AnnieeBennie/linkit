@@ -2,11 +2,11 @@
 @import "Events.css";
 .clubs-page {
   padding: 30px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: var(--beige);
 }
 
-/* Filter bar */
+/* Filter bar
 .filter-bar {
   display: flex;
   gap: 15px;
@@ -37,7 +37,7 @@
   background-color: white;
   border: 1px solid var(--beige);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
+} */
 
 /* Grid layout */
 
@@ -62,7 +62,7 @@
 
 .leave-btn {
   background-color: var(--dark_blue);
-   color: var(--beige);
+  color: var(--beige);
   display: flex;
   padding: 8px 12px;
   flex-direction: column;
@@ -88,5 +88,5 @@
   color: var(--text-secondary);
   font-size: 1.2rem;
   padding: 2rem;
-  grid-column: 1 / -1; 
+  grid-column: 1 / -1;
 }
