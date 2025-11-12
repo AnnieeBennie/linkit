@@ -42,7 +42,7 @@ function getPillColor(ev) {
   if (cat.includes("party")) return "orange";
   if (cat.includes("arts") || cat.includes("culture")) return "blue";
   if (cat.includes("hobbies") || cat.includes("lifestyle")) return "purple";
-  // any other category gets a neutral gray pill
+  // any other category gets a neutral blue pill
   return "blue";
 }
 
