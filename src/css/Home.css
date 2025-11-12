@@ -155,12 +155,21 @@ body {
 
 /* Align eventfilter with title and make */
 /*Also made it non-interactive for sprint 1 feedback implemenation*/
-.home .EventFilter {
+.home .EventFilter,
+.home .ClubFilter {
   margin: 16px 0 0;
-  pointer-events: none;
+  /* allow interaction with the filter buttons on the home page */
+  pointer-events: auto;
   opacity: 1;
 }
 
 .home .sep {
   display: none;
+}
+.no-results {
+  width: 200%;
+  font-family: "Inter";
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--dark_blue);
 }
