@@ -4,14 +4,6 @@ import EventCard from "../Components/EventCard";
 import EventFilter from "../Components/EventFilter";
 import "../css/EventCard.css";
 import "../css/EventFilter.css";
-import padelImage from "../Images/Padel.png";
-import scrollBarImage from "../Images/scrollBar.png";
-import boardgamesImage from "../Images/Boardgame.png";
-import bookImage from "../Images/Books.png";
-import knitingImage from "../Images/Knitting.png";
-import quizImage from "../Images/Quiz.png";
-import footballImage from "../Images/Football.png";
-import designImage from "../Images/Design.png";
 import { fetchEvents } from "../services/eventService";
 
 function Events() {
@@ -28,32 +20,7 @@ function Events() {
       try {
         const data = await fetchEvents();
         if (!mounted) return;
-        const mapped = data.map((e) => ({
-          ...e,
-          image:
-            e.image ||
-            (e.title &&
-              e.title.toLowerCase().includes("padel") &&
-              padelImage) ||
-            (e.title &&
-              e.title.toLowerCase().includes("scroll") &&
-              scrollBarImage) ||
-            (e.title &&
-              e.title.toLowerCase().includes("board") &&
-              boardgamesImage) ||
-            (e.title && e.title.toLowerCase().includes("book") && bookImage) ||
-            (e.title &&
-              e.title.toLowerCase().includes("knitt") &&
-              knitingImage) ||
-            (e.title && e.title.toLowerCase().includes("quiz") && quizImage) ||
-            (e.title &&
-              e.title.toLowerCase().includes("football") &&
-              footballImage) ||
-            (e.title &&
-              e.title.toLowerCase().includes("design") &&
-              designImage) ||
-            undefined,
-        }));
+        const mapped = data.map((e) => ({ ...e, image: e.image || undefined }));
         setEvents(mapped);
         setLoading(false);
       } catch (err) {
