@@ -4,7 +4,11 @@ import "../css/EventCard.css";
 function EventCard({ event }) {
   return (
     <div className="event-card">
-      <img src={event.image} alt={event.title} className="event-image"></img>
+      {event.image ? (
+        <img src={event.image} alt={event.title} className="event-image" />
+      ) : (
+        <div className="event-image placeholder" aria-hidden="true" />
+      )}
       <div className="event-container">
         <h3>{event.title}</h3>
         <p className="event-org">{event.organizer}</p>
