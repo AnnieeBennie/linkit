@@ -52,37 +52,43 @@ export default function Calendar(){
     const grid = useMemo(() => buildGrid(cursor), [cursor]);
     const monthIndex = cursor.getMonth();
     const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const [filter, setFilter] = useState("all");
 
     return(
         <div className="page">
             <h1 className="h1">Calendar</h1>
 
-            <div className="chips">
-                <span className="chip">Arts &amp; Culture</span>
-                <span className="chip">Sports &amp; Fitness</span>
-                <span className="chip">Hobbies &amp; Lifestyle</span>
-                <span className="chip">Party</span>
-                <span className="chip">Registered events</span>
+
+        <div className="chips">
+                <span className={`chip ${filter === "arts" ? "active" : ""}`} onClick={() => setFilter("arts")}>
+                  Arts &amp; Culture</span>
+
+                <span className={`chip ${filter === "sports" ? "active" : ""}`} onClick={() => setFilter("sports")}>
+                  Sports &amp; Fitness</span>
+
+                <span className={`chip ${filter === "hobbies" ? "active" : ""}`} onClick={() => setFilter("hobbies")}>
+                  Hobbies &amp; Lifestyle</span>
+
+                <span className={`chip ${filter === "party" ? "active" : ""}`} onClick={() => setFilter("party")}>
+                  Party</span>
+
+                <span className={`chip ${filter === "registered" ? "active" : ""}`} onClick={() => setFilter("registered")}>
+                  Registered events</span>
             </div>
 
-            <div className="headerBar">
-  <div className="left">
-    <CalendarButton
-    ariaLabel="Previous month"
-    onClick={()=> setCursor(addMonths(cursor,-1))}
-    >
-      ←
-    </CalendarButton>
 
-  <span className="monthLabel">{label}</span>
-</div>
-<CalendarButton
-ariaLabel="Next month"
-onClick={()=> setCursor(addMonths(cursor,1))}
->
-→
-</CalendarButton>
-</div>
+        <div className="headerBar">
+            <div className="left">
+               <CalendarButton
+                   ariaLabel="Previous month" onClick={()=> setCursor(addMonths(cursor,-1))}>
+          ← </CalendarButton>
+
+        <span className="monthLabel">{label}</span>
+            </div>
+                <CalendarButton
+                    ariaLabel="Next month" onClick={()=> setCursor(addMonths(cursor,1))}>
+          → </CalendarButton>
+            </div>
 
         <div className="weekdays">
             {weekdays.map((w)=>(
@@ -92,8 +98,19 @@ onClick={()=> setCursor(addMonths(cursor,1))}
 
         <div className="grid">
             {grid.map((date, i)=>{
-            const out = date.getMonth() !==monthIndex;
-            const dayEvents=eventsOn(date);
+            const out = date.getMonth() !== monthIndex;
+            let dayEvents = eventsOn(date);
+
+            dayEvents = dayEvents.filter(ev => {
+                if (filter === "all") return true;
+                if (filter === "arts") return ev.category === "arts";
+                if (filter === "sports") return ev.category === "sports";
+                if (filter === "hobbies") return ev.category === "hobbies";
+                if (filter === "party") return ev.category === "party";
+                if (filter === "registered") return ev.registered === true;
+    return true;
+  });
+
 
             return (
               <div className={`cell${out ? " out" : ""}`}>
