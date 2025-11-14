@@ -12,11 +12,17 @@ function ClubFilter({
   clubs = [],
   categories: propCategories = null,
   children,
+  //HomePage has only registered clubs showing, hence no need for "My clubs"
+  hideMyClubs = false,
 }) {
-  const categories = useMemo(
-    () => propCategories || DEFAULT_CATEGORIES,
-    [propCategories]
-  );
+  const categories = useMemo(() => {
+    const base = propCategories || DEFAULT_CATEGORIES;
+
+    if (hideMyClubs) {
+      return base.filter((cat) => cat !== "My Clubs");
+    }
+    return base;
+  }, [propCategories, hideMyClubs]);
 
   const [selected, setSelected] = useState(null);
 
