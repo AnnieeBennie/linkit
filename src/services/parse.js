@@ -13,4 +13,16 @@ const SERVER_URL = process.env.REACT_APP_PARSE_SERVER_URL ||
 Parse.initialize(APP_ID, JS_KEY);
 Parse.serverURL = SERVER_URL;
 
+// Anonymous login
+async function ensureAnonUser() {
+  try {
+    if (!Parse.User.current()) {
+      await Parse.AnonymousUtils.logIn();
+    }
+  } catch (err) {
+    console.error("Anonymous login failed:", err);
+  }
+}
+ensureAnonUser();
+
 export default Parse;
