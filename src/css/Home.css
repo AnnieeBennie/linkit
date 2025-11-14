@@ -1,0 +1,175 @@
+:root {
+  --content-max: 1200px;
+  --navy: #0f2e67;
+  --coral: #d4634f;
+  --text: #0e2a4a;
+  --muted: #56657a;
+  --bg: #fbf7f1;
+  --rail: #e95c3a;
+  --card-w: 300px;
+  --img-radius: 12px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+}
+
+/* Banner */
+.announcement {
+  background: var(--navy);
+  color: #fff;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding-inline: calc((100vw - var(--content-max)) / 2 + 24px);
+}
+
+/* Layout */
+.container {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Titles */
+.section-title {
+  margin: 24px 0 12px;
+}
+.section-title.h1 {
+  font-size: 44px;
+  color: var(--coral);
+  font-weight: 800;
+}
+.section-title.h2 {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+/* Horizontal scrolling rows */
+.hrow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+
+  margin-top: 10px;
+  padding-top: 10px;
+
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  position: relative;
+}
+
+/* hide scrollbar */
+.hrow {
+  scrollbar-width: none;
+}
+.hrow::-webkit-scrollbar {
+  display: none;
+}
+.hrow:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 4px;
+}
+
+.hrow-item {
+  width: var(--card-w);
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.sep {
+  position: relative;
+  width: 0;
+  flex: 0 0 0;
+}
+
+.cap {
+  position: relative;
+  width: 0;
+  flex: 0 0 0;
+}
+.cap--left {
+  margin-left: 0;
+}
+.cap--right {
+  margin-right: 0;
+}
+
+.card {
+  position: relative;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 14px;
+}
+
+.event-img {
+  width: 100%;
+  aspect-ratio: 4 / 4;
+  object-fit: cover;
+  border-radius: var(--img-radius);
+  display: block;
+}
+
+.card-body {
+  padding-top: 20px;
+}
+.card-title {
+  margin: 6px 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+}
+.card-meta {
+  color: var(--muted);
+  font-size: 14px;
+}
+.event-row {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0;
+  font-weight: 800;
+}
+.dot {
+  opacity: 0.6;
+}
+
+.btn-primary {
+  margin-top: 10px;
+  background: var(--coral);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: not-allowed;
+}
+
+/* Align eventfilter with title and make */
+/*Also made it non-interactive for sprint 1 feedback implemenation*/
+.home .EventFilter,
+.home .ClubFilter {
+  margin: 16px 0 0;
+  /* allow interaction with the filter buttons on the home page */
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.home .sep {
+  display: none;
+}
+.no-results {
+  width: 200%;
+  font-family: "Inter";
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--dark_blue);
+}

@@ -1,0 +1,9 @@
+:root {
+  --dark_blue: #022161;
+  --beige: #fffdf8;
+  --light_blue: #e2ecf8;
+  --dark_beige: #faf6f0;
+  --orange: #d74935;
+
+  --bg-page: var(--color-beige);
+}

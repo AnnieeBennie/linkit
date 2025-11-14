@@ -1,25 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import Header from "./Components/Header";
+import HomePage from "./Pages/HomePage";
+import Calendar from "./Pages/Calendar";
+import Clubs from "./Pages/Clubs.js";
+import Events from "./Pages/Events";
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/clubs" element={<Clubs />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/chats" element={<div>Chats Page</div>} />
+        <Route path="/settings" element={<div>Settings Page</div>} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
+    </Router>
   );
 }
-
-export default App;

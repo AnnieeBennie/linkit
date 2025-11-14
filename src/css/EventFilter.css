@@ -1,0 +1,41 @@
+.EventFilter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px;
+  border-radius: 8px;
+  background-color: var(--light_blue);
+  width: fit-content;
+  margin: 45px 0 0px 208px;
+  box-sizing: border-box;
+}
+
+.filter-button {
+  background-color: var(--light_blue);
+  border: none;
+  display: flex;
+  height: 32px;
+  padding: 0 12px;
+  align-items: center;
+  gap: 8px;
+  font-family: Inter;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 150%;
+  color: var(--dark_blue);
+}
+
+.filter-button:active {
+  background-color: var(--beige);
+  border-radius: 8px;
+}
+
+.filter-button.active {
+  background-color: var(--beige);
+  border-radius: 8px;
+}
+
+.filter-button {
+  transition: background-color 120ms ease;
+}
