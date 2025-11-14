@@ -13,11 +13,17 @@ function EventFilter({
   events = [],
   categories: propCategories = null,
   children,
+  //HomePage has only registered event showing, hence no need for "Registered Events"
+  hideRegisteredEvents = false,
 }) {
-  const categories = useMemo(
-    () => propCategories || DEFAULT_CATEGORIES,
-    [propCategories]
-  );
+  const categories = useMemo(() => {
+    const base = propCategories || DEFAULT_CATEGORIES;
+
+    if (hideRegisteredEvents) {
+      return base.filter((cat) => cat !== "Registered Events");
+    }
+    return base;
+  }, [propCategories, hideRegisteredEvents]);
 
   const [selected, setSelected] = useState(null);
 

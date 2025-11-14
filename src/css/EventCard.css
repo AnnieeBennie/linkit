@@ -80,3 +80,16 @@
 .join-btn:hover {
   background-color: var(--dark_blue);
 }
+
+.leave-btn {
+  background-color: var(--dark_blue);
+  color: var(--beige);
+}
+.leave-btn:hover {
+  background-color: var(--orange);
+}
+
+.signup-button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
