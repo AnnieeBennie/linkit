@@ -1,15 +1,20 @@
 import React, { useState } from "react";
 import "../css/ClubFilter.css";
 
-const CATEGORIES = [
+const ALL_CATEGORIES = [
   "Arts & Culture",
   "Sports & Fitness",
   "Hobbies & Lifestyle",
   "My Clubs",
 ];
 
-function ClubFilter({ onFilter }) {
+function ClubFilter({ onFilter, hideMyClubs = false }) {
   const [selected, setSelected] = useState(null);
+
+  const CATEGORIES = hideMyClubs
+    ? ALL_CATEGORIES.filter((c) => c !== "My Clubs")
+    : ALL_CATEGORIES;
+
   const categories = ["All", ...CATEGORIES];
 
   function handleClick(cat) {

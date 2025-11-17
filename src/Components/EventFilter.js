@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../css/EventFilter.css";
 
-const CATEGORIES = [
+const ALL_CATEGORIES = [
   "Arts & Culture",
   "Sports & Fitness",
   "Hobbies & Lifestyle",
@@ -9,8 +9,13 @@ const CATEGORIES = [
   "Registered Events",
 ];
 
-function EventFilter({ onFilter }) {
+function EventFilter({ onFilter, hideRegisteredEvents = false }) {
   const [selected, setSelected] = useState(null);
+
+  const CATEGORIES = hideRegisteredEvents
+    ? ALL_CATEGORIES.filter((c) => c !== "Registered Events")
+    : ALL_CATEGORIES;
+
   const categories = ["All", ...CATEGORIES];
 
   function handleClick(cat) {
