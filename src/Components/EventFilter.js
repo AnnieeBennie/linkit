@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import "../css/EventFilter.css";
 
-const DEFAULT_CATEGORIES = [
+const CATEGORIES = [
   "Arts & Culture",
   "Sports & Fitness",
   "Hobbies & Lifestyle",
@@ -9,53 +9,30 @@ const DEFAULT_CATEGORIES = [
   "Registered Events",
 ];
 
-function EventFilter({
-  events = [],
-  categories: propCategories = null,
-  children,
-  //HomePage has only registered event showing, hence no need for "Registered Events"
-  hideRegisteredEvents = false,
-}) {
-  const categories = useMemo(() => {
-    const base = propCategories || DEFAULT_CATEGORIES;
-
-    if (hideRegisteredEvents) {
-      return base.filter((cat) => cat !== "Registered Events");
-    }
-    return base;
-  }, [propCategories, hideRegisteredEvents]);
-
+function EventFilter({ onFilter }) {
   const [selected, setSelected] = useState(null);
+  const categories = ["All", ...CATEGORIES];
 
-  const filtered = useMemo(() => {
-    if (!selected) return events;
-    return events.filter((e) => e.category === selected);
-  }, [events, selected]);
+  function handleClick(cat) {
+    const value = cat === "All" ? null : cat;
+    setSelected(value);
+    onFilter(value);
+  }
 
   return (
-    <div>
-      <div className="EventFilter">
+    <div className="EventFilter">
+      {categories.map((cat) => (
         <button
-          key="all"
-          className={`filter-button ${selected === null ? "active" : ""}`}
-          onClick={() => setSelected(null)}
+          key={cat}
+          className={`filter-button ${
+            selected === (cat === "All" ? null : cat) ? "active" : ""
+          }`}
+          onClick={() => handleClick(cat)}
           type="button"
         >
-          All
+          {cat}
         </button>
-        {categories.map((cat, i) => (
-          <button
-            key={i}
-            className={`filter-button ${selected === cat ? "active" : ""}`}
-            onClick={() => setSelected((cur) => (cur === cat ? null : cat))}
-            type="button"
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {typeof children === "function" ? children(filtered) : children}
+      ))}
     </div>
   );
 }

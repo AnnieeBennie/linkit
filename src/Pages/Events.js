@@ -10,6 +10,11 @@ function Events() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState(null);
+
+  const filteredEvents = filter
+    ? events.filter((e) => e.category === filter)
+    : events;
 
   useEffect(() => {
     let mounted = true;
@@ -46,22 +51,21 @@ function Events() {
       ) : error ? (
         <div className="PageTitle">Failed to load events</div>
       ) : (
-        <EventFilter events={events}>
-          {(filteredEvents) => (
-            <>
-              <div className="PageTitle">Upcoming Events</div>
-              {filteredEvents.length > 0 ? (
-                <div className="events-grid">
-                  {filteredEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-              ) : (
-                <div className="no-results">No matches for your filter</div>
-              )}
-            </>
+        <>
+          <EventFilter onFilter={setFilter} />
+
+          <div className="PageTitle">Upcoming Events</div>
+
+          {filteredEvents.length > 0 ? (
+            <div className="events-grid">
+              {filteredEvents.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          ) : (
+            <div className="no-results">No matches for your filter</div>
           )}
-        </EventFilter>
+        </>
       )}
     </div>
   );
