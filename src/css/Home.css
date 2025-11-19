@@ -153,12 +153,9 @@ body {
   cursor: not-allowed;
 }
 
-/* Align eventfilter with title and make */
-/*Also made it non-interactive for sprint 1 feedback implemenation*/
 .home .EventFilter,
 .home .ClubFilter {
   margin: 16px 0 0;
-  /* allow interaction with the filter buttons on the home page */
   pointer-events: auto;
   opacity: 1;
 }
