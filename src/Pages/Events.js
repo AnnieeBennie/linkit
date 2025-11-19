@@ -15,23 +15,16 @@ function Events() {
     : events;
 
   useEffect(() => {
-    let mounted = true;
-
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await fetchEvents();
-        if (!mounted) return;
+    setLoading(true);
+    fetchEvents()
+      .then((data) => {
         setEvents(data);
         setLoading(false);
-      } catch (err) {
-        if (!mounted) return;
+      })
+      .catch((err) => {
         setError(err);
         setLoading(false);
-      }
-    })();
-
-    return () => (mounted = false);
+      });
   }, []);
 
   if (loading) return <div className="PageTitle">Loading events…</div>;
