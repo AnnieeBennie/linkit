@@ -71,28 +71,20 @@ export default function Clubs() {
     }
   };
 
+  if (loading) return <div className="PageTitle">Loading clubs…</div>;
+  if (error) return <div className="PageTitle">Failed to load clubs</div>;
   return (
     <div className="clubs-container">
-      {loading ? (
-        <div className="PageTitle">Loading clubs...</div>
-      ) : error ? (
-        <div className="PageTitle">Failed to load clubs</div>
+      <ClubFilter onFilter={setFilter} />
+      <div className="PageTitle">Clubs</div>
+      {filteredClubs.length > 0 ? (
+        <div className="clubs-grid">
+          {filteredClubs.map((club) => (
+            <ClubCard key={club.id} club={club} />
+          ))}
+        </div>
       ) : (
-        <>
-          <ClubFilter onFilter={setFilter} />
-
-          <div className="PageTitle">Clubs</div>
-
-          {filteredClubs.length > 0 ? (
-            <div className="clubs-grid">
-              {filteredClubs.map((club) => (
-                <ClubCard key={club.id} club={club} />
-              ))}
-            </div>
-          ) : (
-            <div className="no-results">No matches for your filter</div>
-          )}
-        </>
+        <div className="no-results">No matches for your filter</div>
       )}
     </div>
   );
