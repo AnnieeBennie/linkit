@@ -166,7 +166,7 @@ body {
 .home .sep {
   display: none;
 }
-.no-results {
+.home-no-results {
   width: 200%;
   font-family: "Inter";
   font-size: 24px;

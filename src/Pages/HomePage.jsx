@@ -374,7 +374,7 @@ export default function HomePage() {
             })}
           </HorizontalRow>
         ) : (
-          <div className="no-results">You have no upcoming events</div>
+          <div className="home-no-results">You have no upcoming events</div>
         )}
 
         {/* Your clubs */}
@@ -395,7 +395,7 @@ export default function HomePage() {
             })}
           </HorizontalRow>
         ) : (
-          <div className="no-results">You have not joined any clubs</div>
+          <div className="home-no-results">You have not joined any clubs</div>
         )}
       </main>
 

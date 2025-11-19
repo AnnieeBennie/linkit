@@ -41,5 +41,5 @@
   font-size: 24px;
   font-weight: 400;
   color: var(--dark_blue);
-  margin: 35px 0px 45px var(--grid-margin-x);
+  left: var(--grid-margin-x);
 }
