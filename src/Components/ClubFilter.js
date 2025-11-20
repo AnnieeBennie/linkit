@@ -1,55 +1,42 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import "../css/ClubFilter.css";
 
-const DEFAULT_CATEGORIES = [
+const ALL_CATEGORIES = [
   "Arts & Culture",
   "Sports & Fitness",
   "Hobbies & Lifestyle",
   "My Clubs",
 ];
 
-function ClubFilter({
-  clubs = [],
-  categories: propCategories = null,
-  children,
-}) {
-  const categories = useMemo(
-    () => propCategories || DEFAULT_CATEGORIES,
-    [propCategories]
-  );
-
+function ClubFilter({ onFilter, hideMyClubs = false }) {
   const [selected, setSelected] = useState(null);
 
-  const filtered = useMemo(() => {
-    if (!selected) return clubs;
-    if (selected === "My Clubs") return clubs.filter((c) => c.joined);
-    return clubs.filter((e) => e.category === selected);
-  }, [clubs, selected]);
+  const CATEGORIES = hideMyClubs
+    ? ALL_CATEGORIES.filter((c) => c !== "My Clubs")
+    : ALL_CATEGORIES;
+
+  const categories = ["All", ...CATEGORIES];
+
+  function handleClick(cat) {
+    const value = cat === "All" ? null : cat;
+    setSelected(value);
+    onFilter(value);
+  }
 
   return (
-    <div>
-      <div className="ClubFilter">
+    <div className="ClubFilter">
+      {categories.map((cat) => (
         <button
-          key="all"
-          className={`filter-button ${selected === null ? "active" : ""}`}
-          onClick={() => setSelected(null)}
+          key={cat}
+          className={`filter-button ${
+            selected === (cat === "All" ? null : cat) ? "active" : ""
+          }`}
+          onClick={() => handleClick(cat)}
           type="button"
         >
-          All
+          {cat}
         </button>
-        {categories.map((cat, i) => (
-          <button
-            key={i}
-            className={`filter-button ${selected === cat ? "active" : ""}`}
-            onClick={() => setSelected((cur) => (cur === cat ? null : cat))}
-            type="button"
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {typeof children === "function" ? children(filtered) : children}
+      ))}
     </div>
   );
 }

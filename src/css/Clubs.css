@@ -6,39 +6,6 @@
   background-color: var(--beige);
 }
 
-/* Filter bar
-.filter-bar {
-  display: flex;
-  gap: 15px;
-  background-color: var(--light_blue);
-  border-radius: 12px;
-  padding: 3px;
-  width: fit-content; 
-  justify-content: space-around;
-  flex-wrap: wrap;
-}
-
-.filter-btn {
-  background: none;
-  border: none;
-  color: var(--dark_blue);
-  font-weight: 500;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.filter-btn:hover {
-  background-color: #d8e5fb;
-}
-
-.filter-btn.active {
-  background-color: white;
-  border: 1px solid var(--beige);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-} */
-
 /* Grid layout */
 
 .clubs-grid {
@@ -89,4 +56,28 @@
   font-size: 1.2rem;
   padding: 2rem;
   grid-column: 1 / -1;
+}
+
+.join-btn {
+  background-color: var(--orange);
+  color: var(--beige);
+}
+
+.join-btn:hover {
+  background-color: var(--dark_blue);
+}
+
+.leave-btn {
+  background-color: var(--dark_blue);
+  color: var(--beige);
+}
+
+.leave-btn:hover {
+  background-color: var(--orange);
+}
+
+.join-btn:disabled,
+.leave-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
 }

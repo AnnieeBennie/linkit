@@ -6,7 +6,6 @@ import SearchIcon from "../Icons/Search.svg";
 import NotificationIcon from "../Icons/Notification.svg";
 
 const Header = () => {
-  //   const location = useLocation();
   return (
     <header className="navbar">
       {/* Left side: logo (clickable to go home) */}

@@ -1,103 +1,77 @@
 import Parse from "./parse";
 
-function formatDateRange(startDate, endDate) {
-  if (!startDate) return "";
-  try {
-    const optsDate = { day: "2-digit", month: "2-digit", year: "2-digit" };
-    const optsTime = { hour: "2-digit", minute: "2-digit" };
-    const datePart = new Intl.DateTimeFormat("en-GB", optsDate).format(
-      startDate
-    );
-    const startTime = new Intl.DateTimeFormat("en-GB", optsTime).format(
-      startDate
-    );
-    const endTime = endDate
-      ? new Intl.DateTimeFormat("en-GB", optsTime).format(endDate)
-      : null;
-    return endTime
-      ? `${datePart} | ${startTime} - ${endTime}`
-      : `${datePart} | ${startTime}`;
-  } catch (e) {
-    return "";
+/* ---------------------- DATE HELPERS ---------------------- */
+
+function parseDate(obj, fields) {
+  for (let f of fields) {
+    const value = obj.get(f);
+    if (value) {
+      const date = new Date(value);
+      if (date.toString() !== "Invalid Date") {
+        return date;
+      }
+    }
   }
+  return null;
 }
 
-export async function fetchEvents() {
-  async function queryClass(className) {
-    const C = Parse.Object.extend(className);
-    const q = new Parse.Query(C);
-    q.ascending("startDate");
-    return q.find();
+function formatDateRange(start, end) {
+  if (!start) return "";
+
+  const date = start.toLocaleDateString("en-GB");
+  const startTime = start.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  if (end) {
+    const endTime = end.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return date + " | " + startTime + " - " + endTime;
   }
 
+  return date + " | " + startTime;
+}
+
+/* ---------------------- MAIN FETCH FUNCTION ---------------------- */
+
+export async function fetchEvents() {
   try {
-    console.info("fetchEvents: querying Parse for class 'Event'...");
-    let results = await queryClass("Events");
+    const Event = Parse.Object.extend("Events");
+    const q = new Parse.Query(Event);
+    q.ascending("startDate");
 
-    if (!results || results.length === 0) {
-      console.info("fetchEvents: no results for 'Events'...");
-    }
+    const results = await q.find();
 
-    console.info(`fetchEvents: got ${results ? results.length : 0} results`);
+    return results.map((o) => {
+      // get start/end date from the most common fields
+      const start = o.get("start_date");
+      const end = o.get("end_date");
 
-    return (results || []).map((o) => {
-      function getDateFromObject(obj, keys) {
-        for (const k of keys) {
-          const v = obj.get(k);
-          if (v === undefined || v === null) continue;
-          if (v instanceof Date) return v;
-          if (typeof v === "object" && v.__type === "Date" && v.iso) {
-            const parsed = new Date(v.iso);
-            if (!isNaN(parsed)) return parsed;
-          }
-        }
-        return null;
-      }
+      //  convert to JS Date if they exist
+      const _startDate = start ? new Date(start) : null;
+      const _endDate = end ? new Date(end) : null;
 
-      const startDate = getDateFromObject(o, [
-        "startDate",
-        "start_date",
-        "date",
-        "start_time",
-      ]);
-      const endDate = getDateFromObject(o, ["endDate", "end_date", "end_time"]);
-
-      const rawImage = o.get("images") || o.get("imageUrl") || o.get("image");
-      let imageUrl;
-      if (rawImage) {
-        const candidate = Array.isArray(rawImage) ? rawImage[0] : rawImage;
-        if (candidate) {
-          if (typeof candidate.url === "function") {
-            try {
-              imageUrl = candidate.url();
-            } catch (e) {
-              imageUrl = undefined;
-            }
-          } else if (typeof candidate === "string") {
-            imageUrl = candidate;
-          } else if (candidate.url) {
-            imageUrl = candidate.url;
-          }
-        }
-      }
+      const img = o.get("image");
 
       return {
         id: o.id,
         title: o.get("title") || "",
         category: o.get("category") || "",
         organizer: o.get("organizer") || "",
-        date: formatDateRange(startDate, endDate) || o.get("date") || "" || "",
+        date: _startDate
+          ? formatDateRange(_startDate, _endDate)
+          : o.get("date") || "",
         location: o.get("location") || "",
-        image: imageUrl,
-        _startDate: startDate || null,
-        _endDate: endDate || null,
-        description: o.get("event_description") || "",
+        image: img ? img.url() : undefined,
+        _startDate,
+        _endDate,
       };
     });
   } catch (err) {
     console.error("fetchEvents error", err);
-    const e = new Error(`fetchEvents failed: ${err.message || err}`);
-    e.original = err;
-    throw e;
+    return [];
   }
 }
