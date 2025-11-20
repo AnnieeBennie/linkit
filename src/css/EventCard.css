@@ -93,5 +93,3 @@
 .join-btn:hover {
   background-color: var(--dark_blue);
 }
-
-/* Event details modal styles have been moved to `EventDetails.css` */
