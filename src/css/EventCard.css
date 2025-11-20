@@ -47,6 +47,18 @@
   line-height: 150%;
   color: var(--dark_blue);
 }
+/* Allow flex children to shrink properly inside the fixed-width card */
+.event-card .event-container {
+  min-width: 0;
+}
+/* Make the date/time fit: keep it on one line and use ellipsis when needed */
+.event-date {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 
 .event-location {
   white-space: nowrap;
