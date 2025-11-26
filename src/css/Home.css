@@ -42,6 +42,7 @@ body {
   font-size: 44px;
   color: var(--coral);
   font-weight: 800;
+  margin: 0px;
 }
 .section-title.h2 {
   font-size: 32px;
@@ -109,48 +110,6 @@ body {
   border: none;
   border-radius: 0;
   padding: 14px;
-}
-
-.event-img {
-  width: 100%;
-  aspect-ratio: 4 / 4;
-  object-fit: cover;
-  border-radius: var(--img-radius);
-  display: block;
-}
-
-.card-body {
-  padding-top: 20px;
-}
-.card-title {
-  margin: 6px 0;
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text);
-}
-.card-meta {
-  color: var(--muted);
-  font-size: 14px;
-}
-.event-row {
-  display: flex;
-  gap: 8px;
-  margin: 4px 0;
-  font-weight: 800;
-}
-.dot {
-  opacity: 0.6;
-}
-
-.btn-primary {
-  margin-top: 10px;
-  background: var(--coral);
-  color: #fff;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: not-allowed;
 }
 
 .home .EventFilter,
