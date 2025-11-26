@@ -22,6 +22,7 @@ const mapToEventProp = (e) => ({
   date: e.date,
   time: e.time,
   location: e.location,
+  description: e.description,
 });
 
 const mapToClubProp = (c) => ({
