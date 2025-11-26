@@ -66,6 +66,7 @@ export async function fetchEvents() {
           : o.get("date") || "",
         location: o.get("location") || "",
         image: img ? img.url() : undefined,
+        description: o.get("event_description"),
         _startDate,
         _endDate,
       };

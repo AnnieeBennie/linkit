@@ -18,7 +18,15 @@ function Events() {
     setLoading(true);
     fetchEvents()
       .then((data) => {
-        setEvents(data);
+        // sort events by start date, earliest first
+        const sortedEvents = data.sort((a, b) => {
+          if (!a._startDate) return 1;
+          if (!b._startDate) return -1;
+
+          return a._startDate - b._startDate;
+        });
+
+        setEvents(sortedEvents);
         setLoading(false);
       })
       .catch((err) => {

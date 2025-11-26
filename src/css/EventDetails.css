@@ -1,0 +1,152 @@
+.details-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 24px;
+}
+
+.details-modal {
+  width: min(900px, 100%);
+  max-height: calc(100% - 48px);
+  overflow: auto;
+  border-radius: 18px;
+  box-shadow: 0 16px 60px rgba(10, 20, 30, 0.35);
+  background: var(--dark_beige);
+  align-items: center;
+}
+
+.details-container {
+  position: relative;
+  padding: 48px;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--dark_blue);
+  box-sizing: border-box;
+}
+
+.details-inner {
+  display: flex;
+  gap: 32px;
+  align-items: center; /* vertically center left and right columns */
+  font-family: Inter;
+}
+
+.details-left {
+  flex: 1 1 60%;
+  min-width: 0; /* allow text truncation in flex */
+}
+
+.details-right {
+  flex: 0 0 36%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.event-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: cover;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 32px;
+  line-height: 1.05;
+  margin: 0 0 14px 0;
+  font-weight: 800;
+  color: var(--dark_blue);
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  color: var(--dark_blue);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+}
+
+.event-org,
+.event-date,
+.event-location {
+  margin: 0;
+  font-size: 14px;
+}
+
+.description {
+  margin-top: 20px;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--dark_blue, #08264a);
+  max-width: 70ch;
+  min-height: 224px;
+}
+
+.actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 19px;
+  align-items: center;
+  font-family: Work Sans;
+}
+
+.signup-details-button {
+  background: var(--orange);
+  color: var(--beige);
+  border: none;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-to-my-calendar {
+  background: var(--dark_blue);
+  color: var(--beige);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.group-chat {
+  background: var(--light_blue);
+  color: var(--dark_blue);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.details-close {
+  position: absolute;
+  right: 50px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.details-close img {
+  width: 18px;
+  height: 18px;
+}
