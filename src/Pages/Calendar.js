@@ -1,12 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/Calendar.css";
 import { fetchEvents } from "../services/eventService";
+import EventFilter from "../Components/EventFilter";
 
-// Note: events are fetched from the Parse `Events`/`Event` class via
-// `fetchEvents()`. Each event object is expected to include `_startDate`
-// (a JS Date or null) and `id` (Parse objectId). We group events by the
-// local date key `YYYY-MM-DD` and render pills for each day.
-
+// Helpers
 function buildGrid(current) {
   const first = new Date(current.getFullYear(), current.getMonth(), 1);
   const mondayOffset = (first.getDay() + 6) % 7;
@@ -33,27 +30,25 @@ function toDateKeyLocal(d) {
 }
 
 function getPillColor(ev) {
-  // Prefer an explicit color set on the event (from backend). Otherwise
-  // derive the color from `ev.category` only. No title-based heuristics.
   if (ev.color) return ev.color;
   const cat = (ev.category || "").toLowerCase();
-  if (!cat) return "gray"; // default when category is missing
+  if (!cat) return "gray";
   if (cat.includes("sport") || cat.includes("fitness")) return "green";
   if (cat.includes("party")) return "orange";
   if (cat.includes("arts") || cat.includes("culture")) return "blue";
   if (cat.includes("hobbies") || cat.includes("lifestyle")) return "purple";
-  // any other category gets a neutral gray pill
   return "gray";
 }
 
 export default function Calendar() {
-  const [cursor, setCursor] = useState(new Date(2025, 10, 1));
+  const [cursor, setCursor] = useState(new Date());
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const label = cursor.toLocaleString("en", { month: "long", year: "numeric" });
+  const [filter, setFilter] = useState(null);
 
-  const grid = useMemo(() => buildGrid(cursor), [cursor]);
+  const label = cursor.toLocaleString("en", { month: "long", year: "numeric" });
+  const grid = buildGrid(cursor);
   const monthIndex = cursor.getMonth();
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -61,6 +56,7 @@ export default function Calendar() {
     let mounted = true;
     setLoading(true);
     setError(null);
+
     (async () => {
       try {
         const data = await fetchEvents();
@@ -74,115 +70,115 @@ export default function Calendar() {
         setLoading(false);
       }
     })();
+
     return () => {
       mounted = false;
     };
   }, []);
 
-  // Map events into a date-key -> [events] map (local dates)
-  const eventsByDate = useMemo(() => {
-    const m = new Map();
-    for (const ev of events || []) {
-      let key = null;
-      if (ev._startDate instanceof Date && !isNaN(ev._startDate)) {
-        key = toDateKeyLocal(ev._startDate);
-      } else if (ev.date) {
-        // try to parse string date (fallback)
-        const parsed = new Date(ev.date);
-        if (!isNaN(parsed)) key = toDateKeyLocal(parsed);
-      }
-      if (!key) continue;
-      if (!m.has(key)) m.set(key, []);
-      m.get(key).push(ev);
+  if (loading) return <div className="page">Loading events…</div>;
+  if (error) return <div className="page">Failed to load events</div>;
+
+  // Build events by date and filter inline
+  const eventsByDate = new Map();
+  for (const ev of events || []) {
+    if (filter && ev.category !== filter) continue;
+
+    let key = null;
+    if (ev._startDate instanceof Date && !isNaN(ev._startDate)) {
+      key = toDateKeyLocal(ev._startDate);
+    } else if (ev.date) {
+      const parsed = new Date(ev.date);
+      if (!isNaN(parsed)) key = toDateKeyLocal(parsed);
     }
-    // sort events for each day by start time
-    for (const [k, arr] of m.entries()) {
-      arr.sort((a, b) => {
-        const ta = a._startDate ? +a._startDate : 0;
-        const tb = b._startDate ? +b._startDate : 0;
-        return ta - tb;
-      });
-    }
-    return m;
-  }, [events]);
+    if (!key) continue;
+
+    if (!eventsByDate.has(key)) eventsByDate.set(key, []);
+    eventsByDate.get(key).push(ev);
+  }
+
+  // Sort events for each day
+  for (const arr of eventsByDate.values()) {
+    arr.sort((a, b) => (+a._startDate || 0) - (+b._startDate || 0));
+  }
 
   return (
     <div className="page">
+      {/* Event filter */}
+      <EventFilter onFilter={setFilter} />
+
       <h1 className="h1">Calendar</h1>
 
-      <div className="chips">
-        <span className="chip">Arts &amp; Culture</span>
-        <span className="chip">Sports &amp; Fitness</span>
-        <span className="chip">Hobbies &amp; Lifestyle</span>
-        <span className="chip">Party</span>
-        <span className="chip">Registered events</span>
-      </div>
+      <div className="calendar-container">
+        {/* Month navigation */}
+        <div className="headerBar">
+          <div className="left">
+            <button
+              type="button"
+              className="arrow"
+              onClick={() => setCursor(addMonths(cursor, -1))}
+              aria-label="Previous month"
+            >
+              ←
+            </button>
+            <span className="monthLabel">{label}</span>
+          </div>
 
-      <div className="headerBar">
-        <div className="left">
           <button
             type="button"
             className="arrow"
-            onClick={() => setCursor(addMonths(cursor, -1))}
-            aria-label="Previous month"
+            onClick={() => setCursor(addMonths(cursor, 1))}
+            aria-label="Next month"
           >
-            ←
+            →
           </button>
-          <span className="monthLabel">{label}</span>
         </div>
 
-        <button
-          type="button"
-          className="arrow"
-          onClick={() => setCursor(addMonths(cursor, 1))}
-          aria-label="Next month"
-        >
-          →
-        </button>
-      </div>
+        {/* Weekdays */}
+        <div className="weekdays">
+          {weekdays.map((w) => (
+            <div key={w}>{w}</div>
+          ))}
+        </div>
 
-      <div className="weekdays">
-        {weekdays.map((w) => (
-          <div key={w}>{w}</div>
-        ))}
-      </div>
+        {/* Calendar grid */}
+        <div className="grid">
+          {grid.map((date) => {
+            const out = date.getMonth() !== monthIndex;
+            const key = toDateKeyLocal(date);
+            const dayEvents = eventsByDate.get(key) || [];
 
-      <div className="grid">
-        {grid.map((date) => {
-          const out = date.getMonth() !== monthIndex;
-          const key = toDateKeyLocal(date);
-          const dayEvents = eventsByDate.get(key) || [];
-
-          return (
-            <div
-              key={date.toDateString()}
-              className={`cell ${out ? "out" : ""}`}
-            >
-              <div className="day">{date.getDate()}</div>
-              <div className="pills">
-                {dayEvents.map((ev) => {
-                  const color = getPillColor(ev);
-                  return (
-                    <div
-                      key={ev.id}
-                      className={`pill ${color}`}
-                      title={ev.title}
-                    >
-                      {ev._startDate
-                        ? new Intl.DateTimeFormat("en-GB", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }).format(ev._startDate) +
-                          " — " +
-                          ev.title
-                        : ev.title}
-                    </div>
-                  );
-                })}
+            return (
+              <div
+                key={date.toDateString()}
+                className={`cell ${out ? "out" : ""}`}
+              >
+                <div className="day">{date.getDate()}</div>
+                <div className="pills">
+                  {dayEvents.map((ev) => {
+                    const color = getPillColor(ev);
+                    return (
+                      <div
+                        key={ev.id}
+                        className={`pill ${color}`}
+                        title={ev.title}
+                      >
+                        {ev._startDate
+                          ? new Intl.DateTimeFormat("en-GB", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }).format(ev._startDate) +
+                            " — " +
+                            ev.title
+                          : ev.title}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

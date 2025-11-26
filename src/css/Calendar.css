@@ -1,16 +1,19 @@
 .page {
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 24px;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     Arial;
-  color: #0f172a;
+  color: var(--dark_blue);
 }
 
 .h1 {
   font-size: 32px;
   font-weight: 800;
-  margin: 12px 0 16px;
+  margin-left: 208px;
+  margin-top: 32px;
+}
+.calendar-container {
+  margin-top: 32px;
+  margin-left: 208px;
+  margin-right: 208px;
 }
 
 .headerBar {
@@ -130,30 +133,6 @@
 }
 .pill.purple {
   background: #aeabfc;
-}
-
-.chips {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 12px 0 20px;
-}
-
-.chip {
-  background: #e6eefc;
-  color: #2f3f88;
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 14px;
-}
-
-.chip:hover {
-  filter: brightness(0.98);
-}
-
-.page {
-  max-width: 1040px;
-  margin: 0 auto;
 }
 
 body {

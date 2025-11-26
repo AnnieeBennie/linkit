@@ -1,4 +1,3 @@
-// src/Pages/HomePage.jsx
 import React, { useMemo, useState } from "react";
 import "../css/Home.css";
 import { RECENT_EVENTS, YOUR_CLUBS } from "../mock/events";
@@ -36,11 +35,25 @@ const mapToClubProp = (c) => ({
 export default function HomePage() {
   const YOUR_EVENTS = useMemo(() => RECENT_EVENTS.slice(0, 5), []);
 
+  // MEMBERSHIP STATES
   const [joinedEvents, setJoinedEvents] = useState(() => new Set());
   const [joinedClubs, setJoinedClubs] = useState(() => new Set());
-
   const [loadingId, setLoadingId] = useState(null);
 
+  // FILTER STATES
+  const [eventFilter, setEventFilter] = useState(null);
+  const [clubFilter, setClubFilter] = useState(null);
+
+  // FILTERED DATA
+  const filteredEvents = eventFilter
+    ? YOUR_EVENTS.filter((e) => e.category === eventFilter)
+    : YOUR_EVENTS;
+
+  const filteredClubs = clubFilter
+    ? YOUR_CLUBS.filter((c) => c.category === clubFilter)
+    : YOUR_CLUBS;
+
+  // EVENT TOGGLE LOGIC
   const [toast, setToast] = useState({ open: false, message: "", undo: null });
 
   const handleToggleEvent = (eventObj) => {
@@ -54,7 +67,6 @@ export default function HomePage() {
     setLoadingId(id);
 
     if (currentlyJoined) {
-      // left event
       setToast({
         open: true,
         message: `Left "${eventObj.title}"`,
@@ -68,7 +80,6 @@ export default function HomePage() {
         },
       });
     } else {
-      // joined event
       setToast({
         open: true,
         message: `Signed up for "${eventObj.title}"`,
@@ -79,6 +90,7 @@ export default function HomePage() {
     setTimeout(() => setLoadingId(null), 300);
   };
 
+  // CLUB TOGGLE LOGIC
   const handleToggleClub = (clubObj) => {
     const id = clubObj.id;
     const currentlyJoined = joinedClubs.has(id);
@@ -116,80 +128,70 @@ export default function HomePage() {
   return (
     <>
       <AnnouncementBanner />
+
       <main className="container home">
         <SectionTitle variant="h1">Yooo, Welcome!</SectionTitle>
 
         {/* Recently added */}
         <SectionTitle variant="h2">Recently Added Events</SectionTitle>
         <HorizontalRow ariaLabel="Recently added events">
-          {RECENT_EVENTS.length > 0 ? (
-            RECENT_EVENTS.map((e) => {
+          {RECENT_EVENTS.map((e) => {
+            const ev = mapToEventProp(e);
+            return (
+              <EventCard
+                key={ev.id}
+                event={ev}
+                joined={joinedEvents.has(ev.id)}
+                loading={loadingId === ev.id}
+                onToggle={() => handleToggleEvent(ev)}
+              />
+            );
+          })}
+        </HorizontalRow>
+
+        {/* Your events */}
+        <SectionTitle variant="h2">Your Events</SectionTitle>
+        <EventFilter onFilter={setEventFilter} hideRegisteredEvents />
+
+        {filteredEvents.length > 0 ? (
+          <HorizontalRow ariaLabel="Your events">
+            {filteredEvents.map((e) => {
               const ev = mapToEventProp(e);
               return (
                 <EventCard
-                  key={ev.id}
+                  key={`mine-${ev.id}`}
                   event={ev}
                   joined={joinedEvents.has(ev.id)}
                   loading={loadingId === ev.id}
                   onToggle={() => handleToggleEvent(ev)}
                 />
               );
-            })
-          ) : (
-            <div className="no-results">No events available</div>
-          )}
-        </HorizontalRow>
-
-        {/* Your events */}
-        <SectionTitle variant="h2">Your Events</SectionTitle>
-        <EventFilter events={YOUR_EVENTS} hideRegisteredEvents>
-          {(filteredEvents) => (
-            <HorizontalRow ariaLabel="Your events">
-              {filteredEvents.length > 0 ? (
-                filteredEvents.map((e) => {
-                  const ev = mapToEventProp(e);
-                  return (
-                    <EventCard
-                      key={`mine-${ev.id}`}
-                      event={ev}
-                      joined={joinedEvents.has(ev.id)}
-                      loading={loadingId === ev.id}
-                      onToggle={() => handleToggleEvent(ev)}
-                    />
-                  );
-                })
-              ) : (
-                <div className="no-results">You have no upcoming events</div>
-              )}
-            </HorizontalRow>
-          )}
-        </EventFilter>
+            })}
+          </HorizontalRow>
+        ) : (
+          <div className="home-no-results">You have no upcoming events</div>
+        )}
 
         {/* Your clubs */}
         <SectionTitle variant="h2">Your Clubs</SectionTitle>
-        <ClubFilter clubs={YOUR_CLUBS} hideMyClubs>
-          {(filteredClubs) => (
-            <HorizontalRow ariaLabel="Your clubs">
-              {filteredClubs.length > 0 ? (
-                filteredClubs.map((c) => {
-                  const club = mapToClubProp(c);
-                  return (
-                    <ClubCard
-                      key={club.id}
-                      club={{
-                        ...club,
-                        joined: joinedClubs.has(club.id),
-                      }}
-                      onToggleJoin={() => handleToggleClub(club)}
-                    />
-                  );
-                })
-              ) : (
-                <div className="no-results">You have not joined any clubs</div>
-              )}
-            </HorizontalRow>
-          )}
-        </ClubFilter>
+        <ClubFilter onFilter={setClubFilter} hideMyClubs />
+
+        {filteredClubs.length > 0 ? (
+          <HorizontalRow ariaLabel="Your clubs">
+            {filteredClubs.map((c) => {
+              const club = mapToClubProp(c);
+              return (
+                <ClubCard
+                  key={club.id}
+                  club={{ ...club, joined: joinedClubs.has(club.id) }}
+                  onToggleJoin={() => handleToggleClub(club)}
+                />
+              );
+            })}
+          </HorizontalRow>
+        ) : (
+          <div className="home-no-results">You have not joined any clubs</div>
+        )}
       </main>
 
       <Toast

@@ -14,6 +14,12 @@ import {
 export default function Clubs() {
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState(null);
+
+  const filteredClubs = filter
+    ? clubs.filter((e) => e.category === filter)
+    : clubs;
 
   useEffect(() => {
     async function loadEverything() {
@@ -52,9 +58,7 @@ export default function Clubs() {
   // JOIN / LEAVE
   const handleToggleJoin = async (clubId) => {
     setClubs((prev) =>
-      prev.map((c) =>
-        c.id === clubId ? { ...c, joined: !c.joined } : c
-      )
+      prev.map((c) => (c.id === clubId ? { ...c, joined: !c.joined } : c))
     );
 
     const club = clubs.find((c) => c.id === clubId);
@@ -67,24 +71,20 @@ export default function Clubs() {
     }
   };
 
+  if (loading) return <div className="PageTitle">Loading clubs…</div>;
+  if (error) return <div className="PageTitle">Failed to load clubs</div>;
   return (
     <div className="clubs-container">
-      {loading ? (
-        <div className="PageTitle">Loading clubs…</div>
+      <ClubFilter onFilter={setFilter} />
+      <div className="PageTitle">Clubs</div>
+      {filteredClubs.length > 0 ? (
+        <div className="clubs-grid">
+          {filteredClubs.map((club) => (
+            <ClubCard key={club.id} club={club} />
+          ))}
+        </div>
       ) : (
-        <ClubFilter clubs={clubs}>
-          {(filteredClubs) => (
-            <div className="clubs-grid">
-              {filteredClubs.map((club) => (
-                <ClubCard
-                  key={club.id}
-                  club={club}
-                  onToggleJoin={handleToggleJoin}
-                />
-              ))}
-            </div>
-          )}
-        </ClubFilter>
+        <div className="no-results">No matches for your filter</div>
       )}
     </div>
   );
