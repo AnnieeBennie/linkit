@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import "../css/EventCard.css";
 import EventDetails from "./EventDetails";
+import Success from "./Success";
 
 function EventCard({ event }) {
   const [showDetails, setShowDetails] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   return (
     <>
@@ -38,7 +40,27 @@ function EventCard({ event }) {
           onClick={() => setShowDetails(false)}
         >
           <div className="details-modal" onClick={(e) => e.stopPropagation()}>
-            <EventDetails event={event} onClose={() => setShowDetails(false)} />
+            <EventDetails
+              event={event}
+              onClose={() => setShowDetails(false)}
+              onSignup={() => setShowSuccess(true)}
+            />
+          </div>
+        </div>
+      )}
+
+      {showSuccess && (
+        <div
+          className="details-success-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowSuccess(false)}
+        >
+          <div
+            className="details-success-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Success onClose={() => setShowSuccess(false)} />
           </div>
         </div>
       )}
