@@ -33,7 +33,7 @@ export default function Clubs() {
           id: club.id,
           name: club.get("name"),
           category: club.get("category"),
-          description: club.get("description"),
+          description: club.get("club_description"),
           image: img ? img.url() : undefined,
           joined: false,
         };

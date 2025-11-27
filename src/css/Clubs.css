@@ -81,3 +81,10 @@
   opacity: 0.7;
   cursor: default;
 }
+
+.club-short-description {
+  font-size: 0.9rem;
+  color: #444;
+  margin: 6px 0 10px 0;
+  line-height: 1.35;
+}
