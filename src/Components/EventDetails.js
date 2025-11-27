@@ -1,11 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "../css/EventDetails.css";
 import TicketIcon from "../Icons/Ticket.svg";
 import TimeIcon from "../Icons/Time Circle.svg";
 import LocationIcon from "../Icons/Location.svg";
 import CloseIcon from "../Icons/close.svg";
 
-function EventDetails({ event, onClose }) {
+// navigation handled by parent when showing Success as a popup
+
+function EventDetails({ event, onClose, onSignup }) {
+  // When signup is pressed, call onClose then notify parent via onSignup
+  function handleSignup() {
+    if (onClose) onClose();
+    if (onSignup) onSignup();
+  }
+
   return (
     <div className="details-container">
       <button
@@ -40,7 +48,9 @@ function EventDetails({ event, onClose }) {
           <p className="description">{event.description}</p>
 
           <div className="actions">
-            <button className="signup-details-button">Sign Up</button>
+            <button className="signup-details-button" onClick={handleSignup}>
+              Sign Up
+            </button>
             <button className="add-to-my-calendar">Add to my calendar</button>
             <button className="group-chat">Group Chat</button>
           </div>
