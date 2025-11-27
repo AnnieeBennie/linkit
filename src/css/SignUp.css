@@ -1,40 +1,83 @@
-.title-sign-up {
-  font-family: Work Sans;
-  font-size: 32px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 150%;
-  color: var(--dark_blue);
-  margin-bottom: 24px;
+.sign-up-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
-.create-an-acc {
-  font-family: Work Sans;
-  font-size: 24px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 150%;
-  color: var(--dark_blue);
-  margin-bottom: 32px;
+.sign-up-modal {
+  width: min(450px, 100%);
+  max-height: calc(100% - 48px);
+  overflow: auto;
+  border-radius: 18px;
+  box-shadow: 0 16px 60px rgba(10, 20, 30, 0.35);
+  background: var(--dark_beige);
+  align-items: center;
 }
-.sign-up-login {
-  background: var(--orange);
-  width: 400px;
-  height: 40px;
-  color: var(--beige);
-  border: none;
-  padding: 12px 22px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 48px;
-  font-family: Work Sans;
-  font-size: 16px;
+.sign-up-container {
+  position: relative;
+  padding: 32px;
+  border-radius: 12px;
+  background: transparent;
+  box-sizing: border-box;
 }
 .sign-up-close {
-  right: 50px;
   background: transparent;
   border: none;
-  cursor: pointer;
-  display: flex;
   position: absolute;
+  right: 30px;
+  top: 30px;
+  cursor: pointer;
+}
+.sign-up-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+}
+
+.create-an-acc {
+  font-family: "Work Sans";
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--dark_blue);
+  text-align: center;
+  margin-bottom: 20px;
+}
+.text-sign-up {
+  font-family: "Work Sans";
+  text-align: center;
+  font-size: 17px;
+  color: var(--dark_blue);
+  margin-bottom: 10px;
+}
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  margin-bottom: 14px;
+  font-family: "Work Sans";
+}
+.sign-up-login {
+  width: 100%;
+  background: var(--orange);
+  color: var(--beige);
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 8px;
+  font-weight: 600;
+  transition: 0.15s ease;
+}
+.sign-up-login:hover {
+  background-color: var(--dark_blue);
 }

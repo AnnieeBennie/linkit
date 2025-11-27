@@ -41,7 +41,12 @@ const Header = () => {
           <img src={SearchIcon} alt="Search" className="icon" />
           <img src={NotificationIcon} alt="Notifications" className="icon" />
 
-          <img src={ProfileIcon} alt="Profile" className="icon" onClick={() => setShowLogin(true)}/>
+          <img
+            src={ProfileIcon}
+            alt="Profile"
+            className="icon"
+            onClick={() => setShowLogin(true)}
+          />
         </div>
       </header>
       {showLogin && (
@@ -50,6 +55,16 @@ const Header = () => {
           onSuccess={(user) => {
             console.log("Logged in:", user.get("email"));
             setShowLogin(false);
+          }}
+          onShowRegister={() => setShowRegister(true)}
+        />
+      )}
+      {showRegister && (
+        <SignUp
+          onClose={() => setShowRegister(false)}
+          onSuccess={(user) => {
+            console.log("Logged in:", user.get("email"));
+            setShowRegister(false);
           }}
         />
       )}

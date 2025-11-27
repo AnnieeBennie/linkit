@@ -3,7 +3,11 @@ import "../css/AuthModal.css";
 import CloseIcon from "../Icons/close.svg";
 import { loginUser } from "../services/loginService";
 
-function Login({ onClose = () => {}, onSuccess = () => {}, onShowRegister = () => {} }) {
+function Login({
+  onClose = () => {},
+  onSuccess = () => {},
+  onShowRegister = () => {},
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -60,7 +64,12 @@ function Login({ onClose = () => {}, onSuccess = () => {}, onShowRegister = () =
 
           <p className="auth-switch">
             Not a user yet?{" "}
-            <span onClick={() => { onClose(); onShowRegister(); }}>
+            <span
+              onClick={() => {
+                onClose();
+                onShowRegister();
+              }}
+            >
               Register
             </span>
           </p>

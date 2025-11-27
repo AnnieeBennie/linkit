@@ -27,36 +27,46 @@ function SignUp({ onClose = () => {}, onSuccess = () => {} }) {
   };
 
   return (
-    <div className="sign-up-container" role="dialog" aria-modal="true">
-      <button
-        className="sign-up-close"
-        onClick={onClose}
-        aria-label="Close"
-        type="button"
-      >
-        <img src={CloseIcon} alt="close" />
-      </button>
+    <div className="sign-up-overlay">
+      <div className="sign-up-modal">
+        <div className="sign-up-container" role="dialog" aria-modal="true">
+          <button
+            className="sign-up-close"
+            onClick={onClose}
+            aria-label="Close"
+            type="button"
+          >
+            <img src={CloseIcon} alt="close" />
+          </button>
 
-      <form className="sign-up-inner" onSubmit={handleSubmit}>
-        <h1 className="title-sign-up">LinkIT</h1>
-        <h2 className="create-an-acc">Create an account</h2>
-        <p className="text">Enter your email to sign up for this app</p>
+          <form className="sign-up-inner" onSubmit={handleSubmit}>
+            <h2 className="create-an-acc">Create an account</h2>
+            <p className="text-sign-up">
+              Enter your email to sign up for this app
+            </p>
 
-        {error && <div className="sign-up-error">{error}</div>}
+            {error && <div className="sign-up-error">{error}</div>}
 
-        <input name="email" className="email" placeholder="Email" required />
-        <input
-          name="password"
-          type="password"
-          className="password"
-          placeholder="Password"
-          required
-        />
+            <input
+              name="email"
+              className="input"
+              placeholder="Email"
+              required
+            />
+            <input
+              name="password"
+              type="password"
+              className="input"
+              placeholder="Password"
+              required
+            />
 
-        <button className="sign-up-login" type="submit" disabled={loading}>
-          {loading ? "Signing up..." : "Sign Up"}
-        </button>
-      </form>
+            <button className="sign-up-login" type="submit" disabled={loading}>
+              {loading ? "Signing up..." : "Sign Up"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
