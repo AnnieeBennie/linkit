@@ -41,7 +41,9 @@ function SignUp({ onClose = () => {}, onSuccess = () => {} }) {
 
           <form className="sign-up-inner" onSubmit={handleSubmit}>
             <h2 className="create-an-acc">Create an account</h2>
-            <p className="text">Enter your email to sign up for this app</p>
+            <p className="text-sign-up">
+              Enter your email to sign up for this app
+            </p>
 
             {error && <div className="sign-up-error">{error}</div>}
 
