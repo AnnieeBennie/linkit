@@ -1,11 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/EventCard.css";
 import EventDetails from "./EventDetails";
 import Success from "./Success";
+import { getRegistrationForEvent } from "../services/eventSignupService";
 
 function EventCard({ event }) {
   const [showDetails, setShowDetails] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [registered, setRegistered] = useState(false);
+  const [loadingReg, setLoadingReg] = useState(false);
+
+  useEffect(() => {
+    setLoadingReg(true);
+    getRegistrationForEvent(event.id)
+      .then((r) => setRegistered(!!r))
+      .catch((err) => console.warn("EventCard: check registration failed", err))
+      .finally(() => setLoadingReg(false));
+  }, [event.id]);
+
+  // Re-check registration when auth changes (login/logout) elsewhere in the app
+  useEffect(() => {
+    function handleAuthChange() {
+      setLoadingReg(true);
+      getRegistrationForEvent(event.id)
+        .then((r) => setRegistered(!!r))
+        .catch((err) => console.warn("EventCard: check registration failed", err))
+        .finally(() => setLoadingReg(false));
+    }
+
+    window.addEventListener("auth-change", handleAuthChange);
+    return () => window.removeEventListener("auth-change", handleAuthChange);
+  }, [event.id]);
 
   return (
     <>
@@ -24,10 +49,11 @@ function EventCard({ event }) {
           </p>
           <button
             onClick={() => setShowDetails(true)}
-            className="signup-button"
+            className={registered ? "leave-button" : "signup-button"}
             aria-expanded={showDetails}
+            disabled={loadingReg}
           >
-            Sign Up
+            {registered ? "Leave" : "Sign Up"}
           </button>
         </div>
       </div>
@@ -43,7 +69,11 @@ function EventCard({ event }) {
             <EventDetails
               event={event}
               onClose={() => setShowDetails(false)}
-              onSignup={() => setShowSuccess(true)}
+              onSignup={() => {
+                setShowSuccess(true);
+                setRegistered(true);
+              }}
+              onUnsignup={() => setRegistered(false)}
             />
           </div>
         </div>

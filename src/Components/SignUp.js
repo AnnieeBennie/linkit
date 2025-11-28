@@ -19,6 +19,12 @@ function SignUp({ onClose = () => {}, onSuccess = () => {} }) {
       const created = await signUpUser({ email, password });
       setLoading(false);
       onSuccess(created);
+      // notify other components that auth state changed (signup usually also logs user in)
+      try {
+        window.dispatchEvent(new Event("auth-change"));
+      } catch (e) {
+        /* ignore in non-browser tests */
+      }
       onClose();
     } catch (err) {
       setLoading(false);
