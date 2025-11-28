@@ -1,179 +1,152 @@
 import React, { useState, useEffect } from "react";
 import "../css/Calendar.css";
 import { fetchEvents } from "../services/eventService";
+import { getRegisteredEventIdsForCurrentUser } from "../services/eventSignupService";
 import EventFilter from "../Components/EventFilter";
 
-// Helpers
-function buildGrid(current) {
-  const first = new Date(current.getFullYear(), current.getMonth(), 1);
-  const mondayOffset = (first.getDay() + 6) % 7;
-  const start = new Date(first);
-  start.setDate(first.getDate() - mondayOffset);
-  const cells = [];
-  for (let i = 0; i < 42; i++) {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
-    cells.push(d);
-  }
-  return cells;
-}
-
-function addMonths(date, n) {
-  return new Date(date.getFullYear(), date.getMonth() + n, 1);
-}
-
-function toDateKeyLocal(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${dd}`;
-}
-
-function getPillColor(ev) {
-  if (ev.color) return ev.color;
-  const cat = (ev.category || "").toLowerCase();
-  if (!cat) return "gray";
-  if (cat.includes("sport") || cat.includes("fitness")) return "green";
-  if (cat.includes("party")) return "orange";
-  if (cat.includes("arts") || cat.includes("culture")) return "blue";
-  if (cat.includes("hobbies") || cat.includes("lifestyle")) return "purple";
-  return "gray";
-}
-
 export default function Calendar() {
-  const [cursor, setCursor] = useState(new Date());
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState(null);
+  const [registeredIds, setRegisteredIds] = useState([]);
+  const [month, setMonth] = useState(new Date());
 
-  const label = cursor.toLocaleString("en", { month: "long", year: "numeric" });
-  const grid = buildGrid(cursor);
-  const monthIndex = cursor.getMonth();
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+  // Build grid of 42 days
+  const grid = (() => {
+    const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+    const startOffset = (firstDay.getDay() + 6) % 7; // Monday = 0
+    const start = new Date(firstDay);
+    start.setDate(firstDay.getDate() - startOffset);
+
+    const cells = [];
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      cells.push(d);
+    }
+    return cells;
+  })();
+
+  const toDateKey = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate()
+    ).padStart(2, "0")}`;
+
+  const getColor = (cat) => {
+    if (!cat) return "gray";
+    cat = cat.toLowerCase();
+    if (cat.includes("sport") || cat.includes("fitness")) return "green";
+    if (cat.includes("party")) return "orange";
+    if (cat.includes("arts") || cat.includes("culture")) return "blue";
+    if (cat.includes("hobbies") || cat.includes("lifestyle")) return "purple";
+    return "gray";
+  };
+
   useEffect(() => {
-    let mounted = true;
     setLoading(true);
-    setError(null);
-
-    (async () => {
-      try {
-        const data = await fetchEvents();
-        if (!mounted) return;
-        setEvents(data || []);
-        setLoading(false);
-      } catch (err) {
-        console.error("Calendar: failed to fetch events", err);
-        if (!mounted) return;
-        setError(err);
-        setLoading(false);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
+    fetchEvents()
+      .then((data) => setEvents(data))
+      .catch((err) => setError(err))
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (filter !== "Registered Events") {
+      setRegisteredIds([]);
+      return;
+    }
+    getRegisteredEventIdsForCurrentUser()
+      .then((ids) => setRegisteredIds(ids))
+      .catch(() => setRegisteredIds([]));
+  }, [filter]);
 
   if (loading) return <div className="page">Loading events…</div>;
   if (error) return <div className="page">Failed to load events</div>;
 
-  // Build events by date and filter inline
-  const eventsByDate = new Map();
-  for (const ev of events || []) {
-    if (filter && ev.category !== filter) continue;
-
-    let key = null;
-    if (ev._startDate instanceof Date && !isNaN(ev._startDate)) {
-      key = toDateKeyLocal(ev._startDate);
-    } else if (ev.date) {
-      const parsed = new Date(ev.date);
-      if (!isNaN(parsed)) key = toDateKeyLocal(parsed);
+  // Group events by date
+  const eventsByDate = {};
+  events.forEach((ev) => {
+    if (filter) {
+      if (filter === "Registered Events" && !registeredIds.includes(ev.id))
+        return;
+      if (filter !== "Registered Events" && ev.category !== filter) return;
     }
-    if (!key) continue;
 
-    if (!eventsByDate.has(key)) eventsByDate.set(key, []);
-    eventsByDate.get(key).push(ev);
-  }
+    const key = ev._startDate
+      ? toDateKey(ev._startDate)
+      : toDateKey(new Date(ev.date));
+    if (!eventsByDate[key]) eventsByDate[key] = [];
+    eventsByDate[key].push(ev);
+  });
 
-  // Sort events for each day
-  for (const arr of eventsByDate.values()) {
-    arr.sort((a, b) => (+a._startDate || 0) - (+b._startDate || 0));
-  }
+  Object.values(eventsByDate).forEach((arr) =>
+    arr.sort((a, b) => (a._startDate ? a._startDate - b._startDate : 0))
+  );
 
   return (
     <div className="page">
-      {/* Event filter */}
       <EventFilter onFilter={setFilter} />
 
       <h1 className="h1">Calendar</h1>
 
       <div className="calendar-container">
-        {/* Month navigation */}
         <div className="headerBar">
           <div className="left">
             <button
-              type="button"
+              onClick={() =>
+                setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
+              }
               className="arrow"
-              onClick={() => setCursor(addMonths(cursor, -1))}
-              aria-label="Previous month"
             >
               ←
             </button>
-            <span className="monthLabel">{label}</span>
+            <span className="monthLabel">
+              {month.toLocaleString("en", { month: "long", year: "numeric" })}
+            </span>
           </div>
-
           <button
-            type="button"
+            onClick={() =>
+              setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
+            }
             className="arrow"
-            onClick={() => setCursor(addMonths(cursor, 1))}
-            aria-label="Next month"
           >
             →
           </button>
         </div>
 
-        {/* Weekdays */}
         <div className="weekdays">
           {weekdays.map((w) => (
             <div key={w}>{w}</div>
           ))}
         </div>
 
-        {/* Calendar grid */}
         <div className="grid">
           {grid.map((date) => {
-            const out = date.getMonth() !== monthIndex;
-            const key = toDateKeyLocal(date);
-            const dayEvents = eventsByDate.get(key) || [];
+            const key = toDateKey(date);
+            const dayEvents = eventsByDate[key] || [];
+            const out = date.getMonth() !== month.getMonth();
 
             return (
-              <div
-                key={date.toDateString()}
-                className={`cell ${out ? "out" : ""}`}
-              >
+              <div key={key} className={`cell ${out ? "out" : ""}`}>
                 <div className="day">{date.getDate()}</div>
                 <div className="pills">
-                  {dayEvents.map((ev) => {
-                    const color = getPillColor(ev);
-                    return (
-                      <div
-                        key={ev.id}
-                        className={`pill ${color}`}
-                        title={ev.title}
-                      >
-                        {ev._startDate
-                          ? new Intl.DateTimeFormat("en-GB", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }).format(ev._startDate) +
-                            " — " +
-                            ev.title
-                          : ev.title}
-                      </div>
-                    );
-                  })}
+                  {dayEvents.map((ev) => (
+                    <div
+                      key={ev.id}
+                      className={`pill ${getColor(ev.category)}`}
+                      title={ev.title}
+                    >
+                      {ev._startDate
+                        ? `${new Date(ev._startDate).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })} — ${ev.title}`
+                        : ev.title}
+                    </div>
+                  ))}
                 </div>
               </div>
             );
