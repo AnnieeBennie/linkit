@@ -112,6 +112,15 @@
   font-weight: 600;
   cursor: pointer;
 }
+.leave-details-button {
+  background: var(--dark_blue);
+  color: var(--beige);
+  border: none;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
 .add-to-my-calendar {
   background: var(--dark_blue);

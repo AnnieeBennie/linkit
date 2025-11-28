@@ -1,11 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/EventCard.css";
 import EventDetails from "./EventDetails";
 import Success from "./Success";
+import { getRegistrationForEvent } from "../services/eventSignupService";
 
 function EventCard({ event }) {
   const [showDetails, setShowDetails] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [registered, setRegistered] = useState(false);
+  const [loadingReg, setLoadingReg] = useState(false);
+
+  // Small helper so we don’t repeat code
+  async function checkRegistration() {
+    try {
+      setLoadingReg(true);
+      const reg = await getRegistrationForEvent(event.id);
+      setRegistered(!!reg);
+    } finally {
+      setLoadingReg(false);
+    }
+  }
+
+  // Run on mount
+  useEffect(() => {
+    checkRegistration();
+  }, [event.id]);
+
+  // Run again when login/logout happens elsewhere in the app
+  useEffect(() => {
+    const handler = () => checkRegistration();
+
+    window.addEventListener("auth-change", handler);
+    return () => window.removeEventListener("auth-change", handler);
+  }, [event.id]);
 
   return (
     <>
@@ -15,6 +42,7 @@ function EventCard({ event }) {
         ) : (
           <div className="event-image placeholder" aria-hidden="true" />
         )}
+
         <div className="event-container">
           <h3 className="event-title">{event.title}</h3>
           <p className="event-org">{event.organizer}</p>
@@ -22,12 +50,13 @@ function EventCard({ event }) {
           <p className="event-location" title={event.location}>
             {event.location}
           </p>
+
           <button
             onClick={() => setShowDetails(true)}
-            className="signup-button"
-            aria-expanded={showDetails}
+            className={registered ? "leave-button" : "signup-button"}
+            disabled={loadingReg}
           >
-            Sign Up
+            {registered ? "Leave" : "Sign Up"}
           </button>
         </div>
       </div>
@@ -43,7 +72,11 @@ function EventCard({ event }) {
             <EventDetails
               event={event}
               onClose={() => setShowDetails(false)}
-              onSignup={() => setShowSuccess(true)}
+              onSignup={() => {
+                setRegistered(true);
+                setShowSuccess(true);
+              }}
+              onUnsignup={() => setRegistered(false)}
             />
           </div>
         </div>
