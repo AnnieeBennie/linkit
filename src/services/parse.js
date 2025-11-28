@@ -1,4 +1,4 @@
-import Parse from "parse/dist/parse.min.js";
+import Parse from "parse";
 
 const APP_ID =
   process.env.REACT_APP_PARSE_APP_ID ||
