@@ -13,19 +13,25 @@ import {
 
 export default function Clubs() {
   const [clubs, setClubs] = useState([]);
+  const [joinedClubs, setJoinedClubs] = useState([]); // only source of truth
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error] = useState(null);
   const [filter, setFilter] = useState(null);
 
-  const filteredClubs = filter
-    ? clubs.filter((e) => e.category === filter)
-    : clubs;
+  // Filter logic
+  let filteredClubs = clubs;
+
+  if (filter === "My Clubs") {
+    filteredClubs = clubs.filter((c) => joinedClubs.includes(c.id));
+  } else if (filter) {
+    filteredClubs = clubs.filter((c) => c.category === filter);
+  }
 
   useEffect(() => {
     async function loadEverything() {
       setLoading(true);
 
-      // 1. Load clubs from DB
+      // Load clubs
       const data = await fetchClubs();
       const clubList = data.map((club) => {
         const img = club.get("image");
@@ -35,20 +41,15 @@ export default function Clubs() {
           category: club.get("category"),
           description: club.get("club_description"),
           image: img ? img.url() : undefined,
-          joined: false,
         };
       });
 
-      // 2. Load user memberships
+      setClubs(clubList);
+
+      // Load user's joined club IDs
       const joinedIds = await loadJoinedClubs();
+      setJoinedClubs(joinedIds);
 
-      // 3. Mark clubs as joined
-      const merged = clubList.map((c) => ({
-        ...c,
-        joined: joinedIds.includes(c.id),
-      }));
-
-      setClubs(merged);
       setLoading(false);
     }
 
@@ -56,31 +57,34 @@ export default function Clubs() {
   }, []);
 
   // JOIN / LEAVE
-  const handleToggleJoin = async (clubId) => {
-    setClubs((prev) =>
-      prev.map((c) => (c.id === clubId ? { ...c, joined: !c.joined } : c))
-    );
-
-    const club = clubs.find((c) => c.id === clubId);
-    if (!club) return;
-
-    if (club.joined) {
+  async function handleToggleJoin(clubId) {
+    if (joinedClubs.includes(clubId)) {
       await leaveClub(clubId);
+      setJoinedClubs((prev) => prev.filter((id) => id !== clubId));
     } else {
       await joinClub(clubId);
+      setJoinedClubs((prev) => [...prev, clubId]);
     }
-  };
+  }
 
   if (loading) return <div className="PageTitle">Loading clubs…</div>;
   if (error) return <div className="PageTitle">Failed to load clubs</div>;
+
   return (
     <div className="clubs-container">
       <ClubFilter onFilter={setFilter} />
+
       <div className="PageTitle">Clubs</div>
+
       {filteredClubs.length > 0 ? (
         <div className="clubs-grid">
           {filteredClubs.map((club) => (
-            <ClubCard key={club.id} club={club} />
+            <ClubCard
+              key={club.id}
+              club={club}
+              isJoined={joinedClubs.includes(club.id)}
+              onToggleJoin={handleToggleJoin}
+            />
           ))}
         </div>
       ) : (

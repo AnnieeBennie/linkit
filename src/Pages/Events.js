@@ -8,29 +8,21 @@ import { getRegisteredEventIdsForCurrentUser } from "../services/eventSignupServ
 function Events() {
   const [events, setEvents] = useState([]);
   const [filter, setFilter] = useState(null);
+  const [registeredIds, setRegisteredIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [registeredIds, setRegisteredIds] = useState([]);
 
-  const filteredEvents = filter
-    ? filter === "Registered Events"
-      ? events.filter((e) => registeredIds.includes(e.id))
-      : events.filter((e) => e.category === filter)
-    : events;
-
+  // --- Load + Sort Events ---
   useEffect(() => {
-    setLoading(true);
     fetchEvents()
       .then((data) => {
-        // sort events by start date, earliest first
-        const sortedEvents = data.sort((a, b) => {
-          if (!a._startDate) return 1;
-          if (!b._startDate) return -1;
-
-          return a._startDate - b._startDate;
-        });
-
-        setEvents(sortedEvents);
+        setEvents(
+          data.sort((a, b) => {
+            const ta = a._startDate || Infinity;
+            const tb = b._startDate || Infinity;
+            return ta - tb;
+          })
+        );
         setLoading(false);
       })
       .catch((err) => {
@@ -39,38 +31,37 @@ function Events() {
       });
   }, []);
 
-  // When the Registered Events filter is selected, load the current user's registered event ids.
+  // --- Load registered event IDs when needed ---
   useEffect(() => {
-    let mounted = true;
-
-    async function load() {
+    async function loadRegistered() {
       if (filter !== "Registered Events") {
-        if (mounted) setRegisteredIds([]);
+        setRegisteredIds([]);
         return;
       }
 
       try {
         const ids = await getRegisteredEventIdsForCurrentUser();
-        if (mounted) setRegisteredIds(ids);
-      } catch (err) {
-        console.warn("Events: failed to load registered ids", err);
-        if (mounted) setRegisteredIds([]);
+        setRegisteredIds(ids);
+      } catch {
+        setRegisteredIds([]);
       }
     }
 
-    load();
+    loadRegistered();
 
-    function onAuthChange() {
-      // refresh when auth changes
-      load();
-    }
+    // refresh when login/logout happens
+    const handler = () => loadRegistered();
+    window.addEventListener("auth-change", handler);
 
-    window.addEventListener("auth-change", onAuthChange);
-    return () => {
-      mounted = false;
-      window.removeEventListener("auth-change", onAuthChange);
-    };
+    return () => window.removeEventListener("auth-change", handler);
   }, [filter]);
+
+  // --- Apply Filter ---
+  const filteredEvents = filter
+    ? filter === "Registered Events"
+      ? events.filter((e) => registeredIds.includes(e.id))
+      : events.filter((e) => e.category === filter)
+    : events;
 
   if (loading) return <div className="PageTitle">Loading events…</div>;
   if (error) return <div className="PageTitle">Failed to load events</div>;
@@ -83,8 +74,8 @@ function Events() {
 
       {filteredEvents.length > 0 ? (
         <div className="events-grid">
-          {filteredEvents.map((event) => (
-            <EventCard key={event.id} event={event} />
+          {filteredEvents.map((e) => (
+            <EventCard key={e.id} event={e} />
           ))}
         </div>
       ) : (
