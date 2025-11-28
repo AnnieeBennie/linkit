@@ -49,6 +49,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     window.addEventListener("auth-change", handler);
     return () => window.removeEventListener("auth-change", handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Load whether user is registered
   useEffect(() => {
     async function load() {
@@ -118,6 +119,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     if (attendeeCount === 0) return "Be the first to join";
     if (attendeeCount === 1) return "1 person is going";
     return `${attendeeCount} people are going`;
+  }
   // Handle .ics export
   function addToCalendar() {
     try {
