@@ -5,8 +5,6 @@ import TimeIcon from "../Icons/Time Circle.svg";
 import LocationIcon from "../Icons/Location.svg";
 import CloseIcon from "../Icons/close.svg";
 
-// navigation handled by parent when showing Success as a popup
-
 import {
   registerForEvent,
   getRegistrationForEvent,
@@ -15,90 +13,64 @@ import {
 import Login from "./Login";
 
 function EventDetails({ event, onClose, onSignup, onUnsignup }) {
-  // track whether the current user is registered for this event
   const [registered, setRegistered] = useState(false);
   const [loadingReg, setLoadingReg] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
-  useEffect(() => {
-    // simple check when component mounts: set registered state
+  // Small helper → avoids duplicated code
+  async function checkRegistration() {
     setLoadingReg(true);
-    getRegistrationForEvent(event.id)
-      .then((reg) => setRegistered(!!reg))
-      .catch((err) => console.warn("EventDetails: check failed", err))
-      .finally(() => setLoadingReg(false));
-  }, [event.id]);
+    const reg = await getRegistrationForEvent(event.id);
+    setRegistered(!!reg);
+    setLoadingReg(false);
+  }
 
-  // Re-check registration if auth changes (user logged in/out or switched account)
+  // Check once on mount
   useEffect(() => {
-    function handleAuthChange() {
-      setLoadingReg(true);
-      getRegistrationForEvent(event.id)
-        .then((reg) => setRegistered(!!reg))
-        .catch((err) => console.warn("EventDetails: check failed", err))
-        .finally(() => setLoadingReg(false));
-    }
-
-    window.addEventListener("auth-change", handleAuthChange);
-    return () => window.removeEventListener("auth-change", handleAuthChange);
+    checkRegistration();
   }, [event.id]);
 
-  // When signup is pressed, attempt registration then notify parent via onSignup
+  // Re-check if auth changes
+  useEffect(() => {
+    const handler = () => checkRegistration();
+    window.addEventListener("auth-change", handler);
+    return () => window.removeEventListener("auth-change", handler);
+  }, [event.id]);
+
   async function handleSignup() {
     try {
       await registerForEvent(event.id);
       setRegistered(true);
-      if (onClose) onClose();
-      if (onSignup) onSignup();
+      onSignup?.();
+      onClose?.();
     } catch (err) {
-      console.error("handleSignup failed", err);
-      const msg = (err && err.message) || String(err);
-      // If the error indicates the user must be logged in, open Login popup
-      if (/must be logged in|not logged in|must be signed in/i.test(msg)) {
+      const msg = err?.message || "";
+      // If not logged in → ask user to log in
+      if (/not logged in|must be logged in/i.test(msg)) {
         setShowLogin(true);
         return;
       }
-      // otherwise rethrow or surface
-      throw err;
+      console.error(err);
     }
   }
 
   async function handleLeave() {
-    try {
-      const deleted = await unregisterForEvent(event.id);
-      if (deleted) {
-        setRegistered(false);
-        if (onUnsignup) onUnsignup();
-      }
-      if (onClose) onClose();
-    } catch (err) {
-      console.error("handleLeave failed", err);
-      throw err;
+    const removed = await unregisterForEvent(event.id);
+    if (removed) {
+      setRegistered(false);
+      onUnsignup?.();
     }
+    onClose?.();
   }
 
-  // Called after login succeeds: attempt registration again
-  async function handleLoginSuccess(user) {
-    try {
-      setShowLogin(false);
-      await registerForEvent(event.id);
-      setRegistered(true);
-      if (onClose) onClose();
-      if (onSignup) onSignup();
-    } catch (err) {
-      console.error("handleLoginSuccess: registration after login failed", err);
-      // show a simple alert for now
-      alert(err?.message || "Registration failed after login");
-    }
+  async function handleLoginSuccess() {
+    setShowLogin(false);
+    handleSignup(); // simply retry signup after login
   }
 
   return (
     <div className="details-container">
-      <button
-        className="details-close"
-        onClick={onClose}
-        aria-label="Close event details"
-      >
+      <button className="details-close" onClick={onClose}>
         <img src={CloseIcon} alt="close" />
       </button>
 
@@ -107,20 +79,18 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
           <h2 className="title">{event.title}</h2>
 
           <div className="info-row">
-            <img src={TicketIcon} alt="Organizer" className="icon" />
-            <p className="event-org">{event.organizer}</p>
+            <img src={TicketIcon} alt="" className="icon" />
+            <p>{event.organizer}</p>
           </div>
 
           <div className="info-row">
-            <img src={TimeIcon} alt="Time" className="icon" />
-            <p className="event-date">{event.date}</p>
+            <img src={TimeIcon} alt="" className="icon" />
+            <p>{event.date}</p>
           </div>
 
           <div className="info-row">
-            <img src={LocationIcon} alt="Location" className="icon" />
-            <p className="event-location" title={event.location}>
-              {event.location}
-            </p>
+            <img src={LocationIcon} alt="" className="icon" />
+            <p title={event.location}>{event.location}</p>
           </div>
 
           <p className="description">{event.description}</p>
@@ -143,6 +113,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
                 Sign Up
               </button>
             )}
+
             <button className="add-to-my-calendar">Add to my calendar</button>
             <button className="group-chat">Group Chat</button>
           </div>
@@ -152,10 +123,12 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
           {event.image ? (
             <img src={event.image} alt={event.title} className="event-image" />
           ) : (
-            <div className="event-image placeholder" aria-hidden="true" />
+            <div className="event-image placeholder" />
           )}
         </div>
       </div>
+
+      {showLogin && <Login onSuccess={handleLoginSuccess} />}
     </div>
   );
 }

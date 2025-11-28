@@ -7,49 +7,43 @@ function SignUp({ onClose = () => {}, onSuccess = () => {} }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
     setLoading(true);
+    setError("");
+
     const form = new FormData(e.target);
     const email = form.get("email");
     const password = form.get("password");
 
     try {
-      const created = await signUpUser({ email, password });
-      setLoading(false);
-      onSuccess(created);
-      // notify other components that auth state changed (signup usually also logs user in)
-      try {
-        window.dispatchEvent(new Event("auth-change"));
-      } catch (e) {
-        /* ignore in non-browser tests */
-      }
+      const user = await signUpUser({ email, password });
+
+      // notify parent
+      onSuccess(user);
+
+      // tell the whole app that auth changed
+      window.dispatchEvent(new Event("auth-change"));
+
       onClose();
     } catch (err) {
-      setLoading(false);
       setError(err?.message || "Sign up failed");
+    } finally {
+      setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="sign-up-overlay">
       <div className="sign-up-modal">
         <div className="sign-up-container" role="dialog" aria-modal="true">
-          <button
-            className="sign-up-close"
-            onClick={onClose}
-            aria-label="Close"
-            type="button"
-          >
+          <button className="sign-up-close" onClick={onClose} type="button">
             <img src={CloseIcon} alt="close" />
           </button>
 
           <form className="sign-up-inner" onSubmit={handleSubmit}>
             <h2 className="create-an-acc">Create an account</h2>
-            <p className="text-sign-up">
-              Enter your email to sign up for this app
-            </p>
+            <p className="text-sign-up">Enter your email to sign up</p>
 
             {error && <div className="sign-up-error">{error}</div>}
 

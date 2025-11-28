@@ -10,26 +10,28 @@ function EventCard({ event }) {
   const [registered, setRegistered] = useState(false);
   const [loadingReg, setLoadingReg] = useState(false);
 
+  // Small helper so we don’t repeat code
+  async function checkRegistration() {
+    try {
+      setLoadingReg(true);
+      const reg = await getRegistrationForEvent(event.id);
+      setRegistered(!!reg);
+    } finally {
+      setLoadingReg(false);
+    }
+  }
+
+  // Run on mount
   useEffect(() => {
-    setLoadingReg(true);
-    getRegistrationForEvent(event.id)
-      .then((r) => setRegistered(!!r))
-      .catch((err) => console.warn("EventCard: check registration failed", err))
-      .finally(() => setLoadingReg(false));
+    checkRegistration();
   }, [event.id]);
 
-  // Re-check registration when auth changes (login/logout) elsewhere in the app
+  // Run again when login/logout happens elsewhere in the app
   useEffect(() => {
-    function handleAuthChange() {
-      setLoadingReg(true);
-      getRegistrationForEvent(event.id)
-        .then((r) => setRegistered(!!r))
-        .catch((err) => console.warn("EventCard: check registration failed", err))
-        .finally(() => setLoadingReg(false));
-    }
+    const handler = () => checkRegistration();
 
-    window.addEventListener("auth-change", handleAuthChange);
-    return () => window.removeEventListener("auth-change", handleAuthChange);
+    window.addEventListener("auth-change", handler);
+    return () => window.removeEventListener("auth-change", handler);
   }, [event.id]);
 
   return (
@@ -40,6 +42,7 @@ function EventCard({ event }) {
         ) : (
           <div className="event-image placeholder" aria-hidden="true" />
         )}
+
         <div className="event-container">
           <h3 className="event-title">{event.title}</h3>
           <p className="event-org">{event.organizer}</p>
@@ -47,10 +50,10 @@ function EventCard({ event }) {
           <p className="event-location" title={event.location}>
             {event.location}
           </p>
+
           <button
             onClick={() => setShowDetails(true)}
             className={registered ? "leave-button" : "signup-button"}
-            aria-expanded={showDetails}
             disabled={loadingReg}
           >
             {registered ? "Leave" : "Sign Up"}
@@ -70,8 +73,8 @@ function EventCard({ event }) {
               event={event}
               onClose={() => setShowDetails(false)}
               onSignup={() => {
-                setShowSuccess(true);
                 setRegistered(true);
+                setShowSuccess(true);
               }}
               onUnsignup={() => setRegistered(false)}
             />
