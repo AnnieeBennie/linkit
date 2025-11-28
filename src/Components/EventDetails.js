@@ -9,6 +9,7 @@ import {
   registerForEvent,
   getRegistrationForEvent,
   unregisterForEvent,
+  getRegistrationCountForEvent,
 } from "../services/eventSignupService";
 import Login from "./Login";
 
@@ -17,30 +18,42 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
   const [loadingReg, setLoadingReg] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
-  // Small helper → avoids duplicated code
-  async function checkRegistration() {
-    setLoadingReg(true);
-    const reg = await getRegistrationForEvent(event.id);
-    setRegistered(!!reg);
-    setLoadingReg(false);
+  // NEW: how many people are going
+  const [attendeeCount, setAttendeeCount] = useState(null);
+
+  // Small helper toavoid duplicated code
+  async function checkRegistrationAndCount() {
+    try {
+      setLoadingReg(true);
+      const [reg, count] = await Promise.all([
+        getRegistrationForEvent(event.id),
+        getRegistrationCountForEvent(event.id),
+      ]);
+      setRegistered(!!reg);
+      setAttendeeCount(count);
+    } finally {
+      setLoadingReg(false);
+    }
   }
 
-  // Check once on mount
   useEffect(() => {
-    checkRegistration();
+    checkRegistrationAndCount();
   }, [event.id]);
 
-  // Re-check if auth changes
+  // Re-check if authentication changes (login/logout elsewhere)
   useEffect(() => {
-    const handler = () => checkRegistration();
+    const handler = () => checkRegistrationAndCount();
     window.addEventListener("auth-change", handler);
     return () => window.removeEventListener("auth-change", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event.id]);
 
   async function handleSignup() {
     try {
       await registerForEvent(event.id);
       setRegistered(true);
+
+      setAttendeeCount((prev) => (typeof prev === "number" ? prev + 1 : prev));
       onSignup?.();
       onClose?.();
     } catch (err) {
@@ -58,6 +71,10 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     const removed = await unregisterForEvent(event.id);
     if (removed) {
       setRegistered(false);
+
+      setAttendeeCount((prev) =>
+        typeof prev === "number" ? Math.max(0, prev - 1) : prev
+      );
       onUnsignup?.();
     }
     onClose?.();
@@ -65,7 +82,14 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
 
   async function handleLoginSuccess() {
     setShowLogin(false);
-    handleSignup(); // simply retry signup after login
+    handleSignup();
+  }
+
+  function renderAttendeeText() {
+    if (attendeeCount === null) return null;
+    if (attendeeCount === 0) return "Be the first to join";
+    if (attendeeCount === 1) return "1 person is going";
+    return `${attendeeCount} people are going`;
   }
 
   return (
@@ -92,6 +116,11 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
             <img src={LocationIcon} alt="" className="icon" />
             <p title={event.location}>{event.location}</p>
           </div>
+
+          {/* NEW: counter text */}
+          {renderAttendeeText() && (
+            <p className="going-counter">{renderAttendeeText()}</p>
+          )}
 
           <p className="description">{event.description}</p>
 

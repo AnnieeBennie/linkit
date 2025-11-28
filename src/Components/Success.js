@@ -1,10 +1,17 @@
+// src/Components/Success.jsx
 import React from "react";
 import "../css/Success.css";
 import CloseIcon from "../Icons/close.svg";
 import { useNavigate } from "react-router-dom";
 
-function Success({ onClose }) {
+function Success({ onClose, mode = "signup" }) {
   const navigate = useNavigate();
+  const isLeave = mode === "leave";
+
+  const title = "Success!";
+  const message = isLeave
+    ? "You successfully left this event."
+    : "You successfully signed up for a new event! We are waiting to see you soon!";
 
   return (
     <div className="details-container-success-card">
@@ -16,9 +23,8 @@ function Success({ onClose }) {
         <img src={CloseIcon} alt="close" />
       </button>
       <div className="success-inner">
-        <h1 className="title-success">Success!</h1>
-        <h3 className="text">You successfully signed up for a new event!</h3>
-        <h3 className="text">We are waiting to see you soon!</h3>
+        <h1 className="title-success">{title}</h1>
+        <h3 className="text">{message}</h3>
 
         <button
           className="see-other-events"
@@ -33,4 +39,5 @@ function Success({ onClose }) {
     </div>
   );
 }
+
 export default Success;

@@ -132,6 +132,12 @@
   cursor: pointer;
 }
 
+.going-counter {
+  margin: 8px 0;
+  font-weight: 500;
+  color: var(--dark_blue);
+}
+
 .group-chat {
   background: var(--light_blue);
   color: var(--dark_blue);

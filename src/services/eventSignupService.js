@@ -29,7 +29,7 @@ export async function registerForEvent(eventId) {
   return await reg.save();
 }
 
-// --- Check registration ---
+// --- Check registration for current user ---
 export async function getRegistrationForEvent(eventId) {
   const user = Parse.User.current();
   if (!user) return null;
@@ -44,7 +44,7 @@ export async function getRegistrationForEvent(eventId) {
   return await q.first();
 }
 
-// --- Unregister ---
+// --- Unregister current user ---
 export async function unregisterForEvent(eventId) {
   const reg = await getRegistrationForEvent(eventId);
   if (!reg) return false;
@@ -70,4 +70,18 @@ export async function getRegisteredEventIdsForCurrentUser() {
       return evt ? evt.id : null;
     })
     .filter(Boolean);
+}
+
+/**
+ * Count how many registrations exist for a given event.
+ * This is used for the "X people going" counter.
+ */
+export async function getRegistrationCountForEvent(eventId) {
+  const Event = Parse.Object.extend("Events");
+  const event = new Event();
+  event.id = eventId;
+
+  const q = new Parse.Query("RegisteredEvents");
+  q.equalTo("event_id", event);
+  return await q.count();
 }

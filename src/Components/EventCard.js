@@ -1,38 +1,84 @@
-import React, { useState, useEffect } from "react";
+// src/Components/EventCard.js
+import React, { useEffect, useState } from "react";
 import "../css/EventCard.css";
 import EventDetails from "./EventDetails";
 import Success from "./Success";
 import { getRegistrationForEvent } from "../services/eventSignupService";
 
-function EventCard({ event }) {
+function EventCard({ event, joined, onRegistrationChange }) {
   const [showDetails, setShowDetails] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [registered, setRegistered] = useState(false);
+  const [successMode, setSuccessMode] = useState("signup"); // "signup" | "leave"
+
+  // internal state only for uncontrolled usage (Events page etc.)
+  const [internalJoined, setInternalJoined] = useState(false);
   const [loadingReg, setLoadingReg] = useState(false);
 
-  // Small helper so we don’t repeat code
-  async function checkRegistration() {
-    try {
-      setLoadingReg(true);
-      const reg = await getRegistrationForEvent(event.id);
-      setRegistered(!!reg);
-    } finally {
-      setLoadingReg(false);
+  const isControlled = typeof joined === "boolean";
+  const isJoined = isControlled ? joined : internalJoined;
+
+  // --- Load registration from DB when uncontrolled (Events page etc.) ---
+  useEffect(() => {
+    if (isControlled) return;
+
+    let cancelled = false;
+
+    async function checkRegistration() {
+      try {
+        setLoadingReg(true);
+        const reg = await getRegistrationForEvent(event.id);
+        if (!cancelled) {
+          setInternalJoined(!!reg);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingReg(false);
+        }
+      }
     }
-  }
 
-  // Run on mount
-  useEffect(() => {
     checkRegistration();
-  }, [event.id]);
+    return () => {
+      cancelled = true;
+    };
+  }, [event.id, isControlled]);
 
-  // Run again when login/logout happens elsewhere in the app
+  // Re-check when authentication changes (login/logout) – only if uncontrolled
   useEffect(() => {
-    const handler = () => checkRegistration();
+    if (isControlled) return;
+
+    const handler = async () => {
+      const reg = await getRegistrationForEvent(event.id);
+      setInternalJoined(!!reg);
+    };
 
     window.addEventListener("auth-change", handler);
     return () => window.removeEventListener("auth-change", handler);
-  }, [event.id]);
+  }, [event.id, isControlled]);
+
+  // --- Callbacks coming from EventDetails ---
+
+  const handleSignupFromDetails = () => {
+    if (isControlled) {
+      onRegistrationChange?.("signup", event.id);
+    } else {
+      setInternalJoined(true);
+    }
+    setShowDetails(false);
+    setSuccessMode("signup");
+    setShowSuccess(true);
+  };
+
+  const handleLeaveFromDetails = () => {
+    if (isControlled) {
+      onRegistrationChange?.("leave", event.id);
+    } else {
+      setInternalJoined(false);
+    }
+    setShowDetails(false);
+    setSuccessMode("leave");
+    setShowSuccess(true);
+  };
 
   return (
     <>
@@ -42,7 +88,6 @@ function EventCard({ event }) {
         ) : (
           <div className="event-image placeholder" aria-hidden="true" />
         )}
-
         <div className="event-container">
           <h3 className="event-title">{event.title}</h3>
           <p className="event-org">{event.organizer}</p>
@@ -50,13 +95,13 @@ function EventCard({ event }) {
           <p className="event-location" title={event.location}>
             {event.location}
           </p>
-
           <button
             onClick={() => setShowDetails(true)}
-            className={registered ? "leave-button" : "signup-button"}
-            disabled={loadingReg}
+            className={isJoined ? "leave-button" : "signup-button"}
+            aria-expanded={showDetails}
+            disabled={!isControlled && loadingReg}
           >
-            {registered ? "Leave" : "Sign Up"}
+            {isJoined ? "Leave" : "Sign Up"}
           </button>
         </div>
       </div>
@@ -71,12 +116,10 @@ function EventCard({ event }) {
           <div className="details-modal" onClick={(e) => e.stopPropagation()}>
             <EventDetails
               event={event}
+              // EventDetails uses DB to know if you're registered + updates counter.
               onClose={() => setShowDetails(false)}
-              onSignup={() => {
-                setRegistered(true);
-                setShowSuccess(true);
-              }}
-              onUnsignup={() => setRegistered(false)}
+              onSignup={handleSignupFromDetails}
+              onUnsignup={handleLeaveFromDetails}
             />
           </div>
         </div>
@@ -93,7 +136,7 @@ function EventCard({ event }) {
             className="details-success-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <Success onClose={() => setShowSuccess(false)} />
+            <Success onClose={() => setShowSuccess(false)} mode={successMode} />
           </div>
         </div>
       )}
