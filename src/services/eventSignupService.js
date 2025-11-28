@@ -52,3 +52,22 @@ export async function unregisterForEvent(eventId) {
   await reg.destroy();
   return true;
 }
+
+/**
+ * Return an array of event ids the current user is registered for.
+ */
+export async function getRegisteredEventIdsForCurrentUser() {
+  const user = Parse.User.current();
+  if (!user) return [];
+
+  const q = new Parse.Query("RegisteredEvents");
+  q.equalTo("user", user);
+  q.include("event_id");
+  const rows = await q.find();
+  return rows
+    .map((r) => {
+      const evt = r.get("event_id");
+      return evt ? evt.id : null;
+    })
+    .filter(Boolean);
+}

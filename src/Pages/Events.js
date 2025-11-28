@@ -3,15 +3,19 @@ import "../css/Events.css";
 import EventCard from "../Components/EventCard";
 import EventFilter from "../Components/EventFilter";
 import { fetchEvents } from "../services/eventService";
+import { getRegisteredEventIdsForCurrentUser } from "../services/eventSignupService";
 
 function Events() {
   const [events, setEvents] = useState([]);
   const [filter, setFilter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [registeredIds, setRegisteredIds] = useState([]);
 
   const filteredEvents = filter
-    ? events.filter((e) => e.category === filter)
+    ? filter === "Registered Events"
+      ? events.filter((e) => registeredIds.includes(e.id))
+      : events.filter((e) => e.category === filter)
     : events;
 
   useEffect(() => {
@@ -34,6 +38,39 @@ function Events() {
         setLoading(false);
       });
   }, []);
+
+  // When the Registered Events filter is selected, load the current user's registered event ids.
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      if (filter !== "Registered Events") {
+        if (mounted) setRegisteredIds([]);
+        return;
+      }
+
+      try {
+        const ids = await getRegisteredEventIdsForCurrentUser();
+        if (mounted) setRegisteredIds(ids);
+      } catch (err) {
+        console.warn("Events: failed to load registered ids", err);
+        if (mounted) setRegisteredIds([]);
+      }
+    }
+
+    load();
+
+    function onAuthChange() {
+      // refresh when auth changes
+      load();
+    }
+
+    window.addEventListener("auth-change", onAuthChange);
+    return () => {
+      mounted = false;
+      window.removeEventListener("auth-change", onAuthChange);
+    };
+  }, [filter]);
 
   if (loading) return <div className="PageTitle">Loading events…</div>;
   if (error) return <div className="PageTitle">Failed to load events</div>;
