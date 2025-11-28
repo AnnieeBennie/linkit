@@ -2,7 +2,7 @@ import React from "react";
 import "../css/ClubDetails.css";
 import CloseIcon from "../Icons/close.svg";
 
-function ClubDetails({ club, onClose, onJoin }) {
+function ClubDetails({ club, onClose, onJoin, isJoined }) {
   function handleJoin() {
     if (onClose) onClose();
     if (onJoin) onJoin();
@@ -32,7 +32,7 @@ function ClubDetails({ club, onClose, onJoin }) {
 
           <div className="actions2">
             <button className="signup-details-button2" onClick={handleJoin}>
-              Join Club
+              {isJoined ? "Leave" : "Join"}
             </button>
             <button className="group-chat2">Group Chat</button>
           </div>
