@@ -9,39 +9,39 @@ function ClubDetails({ club, onClose, onJoin }) {
   }
 
   return (
-    <div className="details-container">
+    <div className="details-container2">
       <button
-        className="details-close"
+        className="details-close2"
         onClick={onClose}
         aria-label="Close club details"
       >
         <img src={CloseIcon} alt="close" />
       </button>
 
-      <div className="details-inner">
+      <div className="details-inner2">
 
         {/* LEFT SIDE */}
-        <div className="details-left">
-          <h2 className="title">{club.name}</h2>
+        <div className="details-left2">
+          <h2 className="title2">{club.name}</h2>
 
-          <div className="info-row">
+          <div className="info-row2">
             <p className="club-category">{club.category}</p>
           </div>
 
-          <p className="description">{club.description}</p>
+          <p className="description2">{club.description}</p>
 
-          <div className="actions">
-            <button className="signup-details-button" onClick={handleJoin}>
+          <div className="actions2">
+            <button className="signup-details-button2" onClick={handleJoin}>
               Join Club
             </button>
-            <button className="group-chat">Group Chat</button>
+            <button className="group-chat2">Group Chat</button>
           </div>
         </div>
 
         {/* RIGHT SIDE IMAGE */}
-        <div className="details-right">
+        <div className="details-right2">
           {club.image ? (
-            <img src={club.image} alt={club.name} className="event-image" />
+            <img src={club.image} alt={club.name} className="event-image2" />
           ) : (
             <div className="event-image placeholder" aria-hidden="true" />
           )}
