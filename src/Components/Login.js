@@ -24,6 +24,12 @@ function Login({
       const user = await loginUser({ email, password });
       setLoading(false);
       onSuccess(user);
+      // notify other components that auth state changed
+      try {
+        window.dispatchEvent(new Event("auth-change"));
+      } catch (e) {
+        /* ignore in non-browser tests */
+      }
       onClose();
     } catch (err) {
       setLoading(false);
