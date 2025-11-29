@@ -49,6 +49,28 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     const handler = () => checkRegistrationAndCount();
     window.addEventListener("auth-change", handler);
     return () => window.removeEventListener("auth-change", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // Load whether user is registered
+  useEffect(() => {
+    async function load() {
+      setLoadingReg(true);
+      const reg = await getRegistrationForEvent(event.id);
+      setRegistered(!!reg);
+      setLoadingReg(false);
+    }
+    load();
+  }, [event.id]);
+
+  // Refresh when login state changes
+  useEffect(() => {
+    function refresh() {
+      // just re-check
+      getRegistrationForEvent(event.id).then((res) => setRegistered(!!res));
+    }
+
+    window.addEventListener("auth-change", refresh);
+    return () => window.removeEventListener("auth-change", refresh);
   }, [event.id]);
 
   async function handleSignup() {
@@ -57,11 +79,11 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
       await registerForEvent(event.id);
       setRegistered(true);
 
-      // optimistic counter update
-      setAttendeeCount((prev) => (typeof prev === "number" ? prev + 1 : 1));
-
-      // let parent (EventCard/Home) react
+      setAttendeeCount((prev) => (typeof prev === "number" ? prev + 1 : prev));
       onSignup?.();
+      onClose?.();
+      if (onSignup) onSignup();
+      if (onClose) onClose();
     } catch (err) {
       const msg = err?.message || "";
       if (msg.toLowerCase().includes("not logged")) {
@@ -84,6 +106,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
           typeof prev === "number" ? Math.max(0, prev - 1) : prev
         );
         onUnsignup?.();
+        if (onUnsignup) onUnsignup();
       }
     } catch (err) {
       console.error(err);
