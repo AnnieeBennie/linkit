@@ -12,7 +12,6 @@ import SectionTitle from "../Components/SectionTitle";
 import HorizontalRow from "../Components/HorizontalRow";
 import Toast from "../Components/Toast";
 
-// services – same ones your teammates use
 import { fetchEvents } from "../services/eventService";
 import { fetchClubs } from "../services/clubService";
 import { getRegisteredEventIdsForCurrentUser } from "../services/eventSignupService";

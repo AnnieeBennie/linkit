@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../css/EventDetails.css";
+
 import TicketIcon from "../Icons/Ticket.svg";
 import TimeIcon from "../Icons/Time Circle.svg";
 import LocationIcon from "../Icons/Location.svg";
@@ -11,17 +12,19 @@ import {
   unregisterForEvent,
   getRegistrationCountForEvent,
 } from "../services/eventSignupService";
+
 import Login from "./Login";
+import { downloadICS } from "../services/calendarExport";
 
 function EventDetails({ event, onClose, onSignup, onUnsignup }) {
   const [registered, setRegistered] = useState(false);
   const [loadingReg, setLoadingReg] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
-  // NEW: how many people are going
+  // how many people are going
   const [attendeeCount, setAttendeeCount] = useState(null);
 
-  // Small helper toavoid duplicated code
+  // Load: am I registered + how many attendees
   async function checkRegistrationAndCount() {
     try {
       setLoadingReg(true);
@@ -36,60 +39,99 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     }
   }
 
+  // On mount / when event changes
   useEffect(() => {
     checkRegistrationAndCount();
   }, [event.id]);
 
-  // Re-check if authentication changes (login/logout elsewhere)
+  // Re-check when auth changes
   useEffect(() => {
     const handler = () => checkRegistrationAndCount();
     window.addEventListener("auth-change", handler);
     return () => window.removeEventListener("auth-change", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event.id]);
 
   async function handleSignup() {
     try {
+      setLoadingReg(true);
       await registerForEvent(event.id);
       setRegistered(true);
 
-      setAttendeeCount((prev) => (typeof prev === "number" ? prev + 1 : prev));
+      // optimistic counter update
+      setAttendeeCount((prev) => (typeof prev === "number" ? prev + 1 : 1));
+
+      // let parent (EventCard/Home) react
       onSignup?.();
-      onClose?.();
     } catch (err) {
       const msg = err?.message || "";
-      // If not logged in → ask user to log in
-      if (/not logged in|must be logged in/i.test(msg)) {
+      if (msg.toLowerCase().includes("not logged")) {
         setShowLogin(true);
         return;
       }
       console.error(err);
+    } finally {
+      setLoadingReg(false);
     }
   }
 
   async function handleLeave() {
-    const removed = await unregisterForEvent(event.id);
-    if (removed) {
-      setRegistered(false);
-
-      setAttendeeCount((prev) =>
-        typeof prev === "number" ? Math.max(0, prev - 1) : prev
-      );
-      onUnsignup?.();
+    try {
+      setLoadingReg(true);
+      const ok = await unregisterForEvent(event.id);
+      if (ok) {
+        setRegistered(false);
+        setAttendeeCount((prev) =>
+          typeof prev === "number" ? Math.max(0, prev - 1) : prev
+        );
+        onUnsignup?.();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingReg(false);
     }
-    onClose?.();
   }
 
-  async function handleLoginSuccess() {
+  // After login → retry signup
+  function handleLoginSuccess() {
     setShowLogin(false);
     handleSignup();
   }
 
+  // Counter text
   function renderAttendeeText() {
     if (attendeeCount === null) return null;
     if (attendeeCount === 0) return "Be the first to join";
     if (attendeeCount === 1) return "1 person is going";
     return `${attendeeCount} people are going`;
+  }
+
+  // .ics export
+  function addToCalendar() {
+    try {
+      const start =
+        event._startDate instanceof Date && !isNaN(event._startDate)
+          ? event._startDate
+          : event.date
+          ? new Date(event.date)
+          : new Date();
+
+      const end =
+        event._endDate instanceof Date && !isNaN(event._endDate)
+          ? event._endDate
+          : new Date(start.getTime() + 60 * 60 * 1000);
+
+      downloadICS({
+        title: event.title,
+        description: event.description,
+        location: event.location,
+        start,
+        end,
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Couldn't create calendar file.");
+    }
   }
 
   return (
@@ -103,21 +145,20 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
           <h2 className="title">{event.title}</h2>
 
           <div className="info-row">
-            <img src={TicketIcon} alt="" className="icon" />
+            <img src={TicketIcon} className="icon" alt="" />
             <p>{event.organizer}</p>
           </div>
 
           <div className="info-row">
-            <img src={TimeIcon} alt="" className="icon" />
+            <img src={TimeIcon} className="icon" alt="" />
             <p>{event.date}</p>
           </div>
 
           <div className="info-row">
-            <img src={LocationIcon} alt="" className="icon" />
+            <img src={LocationIcon} className="icon" alt="" />
             <p title={event.location}>{event.location}</p>
           </div>
 
-          {/* NEW: counter text */}
           {renderAttendeeText() && (
             <p className="going-counter">{renderAttendeeText()}</p>
           )}
@@ -143,14 +184,17 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
               </button>
             )}
 
-            <button className="add-to-my-calendar">Add to my calendar</button>
+            <button className="add-to-my-calendar" onClick={addToCalendar}>
+              Add to my calendar
+            </button>
+
             <button className="group-chat">Group Chat</button>
           </div>
         </div>
 
         <div className="details-right">
           {event.image ? (
-            <img src={event.image} alt={event.title} className="event-image" />
+            <img src={event.image} className="event-image" alt={event.title} />
           ) : (
             <div className="event-image placeholder" />
           )}

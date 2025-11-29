@@ -3,13 +3,16 @@ import "../css/Clubs.css";
 import ClubDetails from "./ClubDetails";
 import ClubSuccess from "./ClubSuccess";
 
-function ClubCard({ club, onToggleJoin, readOnly = false }) {
+function ClubCard({ club, onToggleJoin, isJoined, readOnly = false }) {
   const [showDetails, setShowDetails] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleJoin = () => {
-    if (onToggleJoin) onToggleJoin(club.id);
-    setShowSuccess(true);
+    const wasJoined = isJoined;
+    onToggleJoin(club.id);
+    if (!wasJoined){
+      setShowSuccess(true);
+    }
   };
 
   return (
@@ -32,14 +35,14 @@ function ClubCard({ club, onToggleJoin, readOnly = false }) {
 
           {!readOnly && (
             <button
-              className={club.joined ? "leave-btn" : "join-btn"}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleJoin();
-              }}
-            >
-              {club.joined ? "Leave" : "Join"}
-            </button>
+            className="join-btn"
+            onClick={(e) => {
+              e.stopPropagation();// prevent opening details
+              onToggleJoin(club.id);
+          }}
+          >
+            {isJoined ? "Leave" : "Join"}
+          </button>
           )}
         </div>
       </div>
@@ -51,6 +54,7 @@ function ClubCard({ club, onToggleJoin, readOnly = false }) {
               club={club}
               onClose={() => setShowDetails(false)}
               onJoin={handleJoin}
+              isJoined={isJoined}
             />
           </div>
         </div>
