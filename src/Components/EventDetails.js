@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import "../css/EventDetails.css";
 
 import TicketIcon from "../Icons/Ticket.svg";
@@ -25,7 +25,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
   const [attendeeCount, setAttendeeCount] = useState(null);
 
   // Load: am I registered + how many attendees
-  async function checkRegistrationAndCount() {
+  const checkRegistrationAndCount = useCallback(async () => {
     try {
       setLoadingReg(true);
       const [reg, count] = await Promise.all([
@@ -37,41 +37,17 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     } finally {
       setLoadingReg(false);
     }
-  }
-
-  // On mount / when event changes
-  useEffect(() => {
-    checkRegistrationAndCount();
   }, [event.id]);
 
-  // Re-check when auth changes
+  useEffect(() => {
+    checkRegistrationAndCount();
+  }, [checkRegistrationAndCount]);
+
   useEffect(() => {
     const handler = () => checkRegistrationAndCount();
     window.addEventListener("auth-change", handler);
     return () => window.removeEventListener("auth-change", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  // Load whether user is registered
-  useEffect(() => {
-    async function load() {
-      setLoadingReg(true);
-      const reg = await getRegistrationForEvent(event.id);
-      setRegistered(!!reg);
-      setLoadingReg(false);
-    }
-    load();
-  }, [event.id]);
-
-  // Refresh when login state changes
-  useEffect(() => {
-    function refresh() {
-      // just re-check
-      getRegistrationForEvent(event.id).then((res) => setRegistered(!!res));
-    }
-
-    window.addEventListener("auth-change", refresh);
-    return () => window.removeEventListener("auth-change", refresh);
-  }, [event.id]);
+  }, [checkRegistrationAndCount]);
 
   async function handleSignup() {
     try {
@@ -80,8 +56,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
       setRegistered(true);
 
       setAttendeeCount((prev) => (typeof prev === "number" ? prev + 1 : prev));
-      onSignup?.();
-      onClose?.();
+
       if (onSignup) onSignup();
       if (onClose) onClose();
     } catch (err) {
@@ -105,7 +80,6 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
         setAttendeeCount((prev) =>
           typeof prev === "number" ? Math.max(0, prev - 1) : prev
         );
-        onUnsignup?.();
         if (onUnsignup) onUnsignup();
       }
     } catch (err) {
@@ -115,7 +89,6 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     }
   }
 
-  // After login → retry signup
   function handleLoginSuccess() {
     setShowLogin(false);
     handleSignup();
@@ -129,7 +102,6 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     return `${attendeeCount} people are going`;
   }
 
-  // .ics export
   function addToCalendar() {
     try {
       const start =

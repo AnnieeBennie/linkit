@@ -1,4 +1,3 @@
-// src/Components/Success.jsx
 import React from "react";
 import "../css/Success.css";
 import CloseIcon from "../Icons/close.svg";

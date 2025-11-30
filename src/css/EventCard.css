@@ -141,7 +141,3 @@
   margin-top: 7px;
   margin-bottom: 10px;
 }
-
-.leave-button:hover {
-  background-color: var(--orange);
-}

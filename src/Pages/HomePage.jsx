@@ -1,4 +1,3 @@
-// src/Pages/HomePage.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import "../css/Home.css";
 
@@ -10,7 +9,6 @@ import ClubFilter from "../Components/ClubFilter";
 import AnnouncementBanner from "../Components/AnnouncementBanner";
 import SectionTitle from "../Components/SectionTitle";
 import HorizontalRow from "../Components/HorizontalRow";
-import Toast from "../Components/Toast";
 
 import { fetchEvents } from "../services/eventService";
 import { fetchClubs } from "../services/clubService";
@@ -22,26 +20,19 @@ import {
 } from "../services/membershipService";
 
 export default function HomePage() {
-  // DATA
   const [events, setEvents] = useState([]);
   const [clubs, setClubs] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // MEMBERSHIP (ids from DB, in Sets)
   const [joinedEvents, setJoinedEvents] = useState(() => new Set());
   const [joinedClubs, setJoinedClubs] = useState(() => new Set());
   const [loadingId, setLoadingId] = useState(null); // for club buttons
 
-  // FILTERS
   const [eventFilter, setEventFilter] = useState(null);
   const [clubFilter, setClubFilter] = useState(null);
 
-  // TOAST (used for clubs; events already have the Success popup)
-  const [toast, setToast] = useState({ open: false, message: "", undo: null });
-
-  // LOAD EVENTS + CLUBS + MEMBERSHIP FROM DB
   useEffect(() => {
     let cancelled = false;
 
@@ -50,7 +41,6 @@ export default function HomePage() {
         setLoading(true);
         setError(null);
 
-        // 1) Get events + clubs
         const [eventsFromDb, clubsFromDb] = await Promise.all([
           fetchEvents(),
           fetchClubs(),
@@ -58,10 +48,20 @@ export default function HomePage() {
 
         if (cancelled) return;
 
-        setEvents(eventsFromDb || []);
-        setClubs(clubsFromDb || []);
+        const clubList = (clubsFromDb || []).map((club) => {
+          const img = club.get("image");
+          return {
+            id: club.id,
+            name: club.get("name"),
+            category: club.get("category"),
+            description: club.get("club_description"),
+            image: img ? img.url() : undefined,
+          };
+        });
 
-        // 2) Membership: which events/clubs this user is actually in
+        setEvents(eventsFromDb || []);
+        setClubs(clubList);
+
         const [eventIds, clubIds] = await Promise.all([
           getRegisteredEventIdsForCurrentUser().catch(() => []),
           loadJoinedClubs().catch(() => []),
@@ -88,7 +88,7 @@ export default function HomePage() {
       cancelled = true;
     };
   }, []);
-  //new
+
   useEffect(() => {
     async function reloadMembership() {
       try {
@@ -110,7 +110,7 @@ export default function HomePage() {
 
     window.addEventListener("auth-change", handler);
     return () => window.removeEventListener("auth-change", handler);
-  }, []); //new
+  }, []);
 
   // 6 newest events (“Recently added”)
   const recentEvents = useMemo(() => {
@@ -145,7 +145,6 @@ export default function HomePage() {
     return yourClubs.filter((c) => c.category === clubFilter);
   }, [yourClubs, clubFilter]);
 
-  // EVENT REGISTRATION CHANGE (from EventCard)
   const handleEventRegistrationChange = (action, eventId) => {
     setJoinedEvents((prev) => {
       const next = new Set(prev);
@@ -158,7 +157,7 @@ export default function HomePage() {
     });
   };
 
-  // CLUB TOGGLE (uses DB membership service)
+  // club toggle (uses DB membership service)
   const handleToggleClub = async (clubObj) => {
     const id = clubObj.id;
     const currentlyJoined = joinedClubs.has(id);
@@ -174,12 +173,6 @@ export default function HomePage() {
           next.delete(id);
           return next;
         });
-
-        setToast({
-          open: true,
-          message: `Left "${clubObj.name}"`,
-          undo: null,
-        });
       } else {
         await joinClub(id);
 
@@ -188,20 +181,9 @@ export default function HomePage() {
           next.add(id);
           return next;
         });
-
-        setToast({
-          open: true,
-          message: `Joined "${clubObj.name}"`,
-          undo: null,
-        });
       }
     } catch (err) {
-      console.error(err);
-      setToast({
-        open: true,
-        message: "Something went wrong updating your club membership.",
-        undo: null,
-      });
+      console.error("Something went wrong updating your club membership.", err);
     } finally {
       setLoadingId(null);
     }
@@ -272,7 +254,8 @@ export default function HomePage() {
             {filteredYourClubs.map((club) => (
               <ClubCard
                 key={club.id}
-                club={{ ...club, joined: joinedClubs.has(club.id) }}
+                club={club}
+                isJoined={joinedClubs.has(club.id)}
                 onToggleJoin={() => handleToggleClub(club)}
                 loading={loadingId === club.id}
               />

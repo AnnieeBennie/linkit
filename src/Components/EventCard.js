@@ -1,4 +1,3 @@
-// src/Components/EventCard.js
 import React, { useEffect, useState } from "react";
 import "../css/EventCard.css";
 import EventDetails from "./EventDetails";
@@ -8,16 +7,14 @@ import { getRegistrationForEvent } from "../services/eventSignupService";
 function EventCard({ event, joined, onRegistrationChange }) {
   const [showDetails, setShowDetails] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [successMode, setSuccessMode] = useState("signup"); // "signup" | "leave"
+  const [successMode, setSuccessMode] = useState("signup"); // "signup" / "leave"
 
-  // internal state only for uncontrolled usage (Events page etc.)
   const [internalJoined, setInternalJoined] = useState(false);
   const [loadingReg, setLoadingReg] = useState(false);
 
   const isControlled = typeof joined === "boolean";
   const isJoined = isControlled ? joined : internalJoined;
 
-  // --- Load registration from DB when uncontrolled (Events page etc.) ---
   useEffect(() => {
     if (isControlled) return;
 
@@ -43,7 +40,6 @@ function EventCard({ event, joined, onRegistrationChange }) {
     };
   }, [event.id, isControlled]);
 
-  // Re-check when authentication changes (login/logout) – only if uncontrolled
   useEffect(() => {
     if (isControlled) return;
 
@@ -56,28 +52,39 @@ function EventCard({ event, joined, onRegistrationChange }) {
     return () => window.removeEventListener("auth-change", handler);
   }, [event.id, isControlled]);
 
-  // --- Callbacks coming from EventDetails ---
-
+  // When signup inside popup succeeds
   const handleSignupFromDetails = () => {
-    if (isControlled) {
-      onRegistrationChange?.("signup", event.id);
-    } else {
+    if (!isControlled) {
+      // Events page: keep local state in sync
       setInternalJoined(true);
     }
+    // Close details and show success
     setShowDetails(false);
     setSuccessMode("signup");
     setShowSuccess(true);
   };
 
+  // When leave inside the popup succeeds
   const handleLeaveFromDetails = () => {
-    if (isControlled) {
-      onRegistrationChange?.("leave", event.id);
-    } else {
+    if (!isControlled) {
       setInternalJoined(false);
     }
     setShowDetails(false);
     setSuccessMode("leave");
     setShowSuccess(true);
+  };
+
+  // When user closes the Success modal
+  const handleSuccessClose = () => {
+    setShowSuccess(false);
+
+    if (isControlled && onRegistrationChange) {
+      if (successMode === "signup") {
+        onRegistrationChange("signup", event.id);
+      } else if (successMode === "leave") {
+        onRegistrationChange("leave", event.id);
+      }
+    }
   };
 
   return (
@@ -130,13 +137,13 @@ function EventCard({ event, joined, onRegistrationChange }) {
           className="details-success-overlay"
           role="dialog"
           aria-modal="true"
-          onClick={() => setShowSuccess(false)}
+          onClick={handleSuccessClose}
         >
           <div
             className="details-success-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <Success onClose={() => setShowSuccess(false)} mode={successMode} />
+            <Success onClose={handleSuccessClose} mode={successMode} />
           </div>
         </div>
       )}

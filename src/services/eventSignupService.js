@@ -28,13 +28,14 @@ export async function registerForEvent(eventId) {
   reg.set("user", user);
   reg.set("event_id", event);
 
-  // Only user can see/edit this row
-  reg.setACL(new Parse.ACL(user));
+  const acl = new Parse.ACL();
+  acl.setPublicReadAccess(true);
+  acl.setWriteAccess(user, true);
+  reg.setACL(acl);
 
   return reg.save();
 }
 
-// --- Check if user registered ---
 export async function getRegistrationForEvent(eventId) {
   const user = Parse.User.current();
   if (!user) return null;
@@ -45,15 +46,14 @@ export async function getRegistrationForEvent(eventId) {
   return q.first();
 }
 
-// --- Unregister user ---
 export async function unregisterForEvent(eventId) {
   const reg = await getRegistrationForEvent(eventId);
   if (!reg) return false;
+
   await reg.destroy();
   return true;
 }
 
-// --- Get all eventIds user is registered for ---
 export async function getRegisteredEventIdsForCurrentUser() {
   const user = Parse.User.current();
   if (!user) return [];
@@ -63,19 +63,16 @@ export async function getRegisteredEventIdsForCurrentUser() {
   q.include("event_id");
   const rows = await q.find();
 
-  return rows.map((r) => r.get("event_id")?.id).filter(Boolean);
+  return rows
+    .map((r) => {
+      const evt = r.get("event_id");
+      return evt ? evt.id : null;
+    })
+    .filter(Boolean);
 }
 
-/**
- * Count how many registrations exist for a given event.
- * This is used for the "X people going" counter.
- */
 export async function getRegistrationCountForEvent(eventId) {
-  const Event = Parse.Object.extend("Events");
-  const event = new Event();
-  event.id = eventId;
-
   const q = new Parse.Query("RegisteredEvents");
-  q.equalTo("event_id", event);
-  return await q.count();
+  q.equalTo("event_id", eventPointer(eventId));
+  return q.count();
 }
