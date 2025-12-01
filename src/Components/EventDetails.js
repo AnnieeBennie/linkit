@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import "../css/EventDetails.css";
 
 import TicketIcon from "../Icons/Ticket.svg";
@@ -10,6 +10,7 @@ import {
   registerForEvent,
   getRegistrationForEvent,
   unregisterForEvent,
+  getRegistrationCountForEvent,
 } from "../services/eventSignupService";
 
 import Login from "./Login";
@@ -20,32 +21,41 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
   const [loadingReg, setLoadingReg] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
-  // Load whether user is registered
-  useEffect(() => {
-    async function load() {
+  // how many people are going
+  const [attendeeCount, setAttendeeCount] = useState(null);
+
+  // Load: am I registered + how many attendees
+  const checkRegistrationAndCount = useCallback(async () => {
+    try {
       setLoadingReg(true);
-      const reg = await getRegistrationForEvent(event.id);
+      const [reg, count] = await Promise.all([
+        getRegistrationForEvent(event.id),
+        getRegistrationCountForEvent(event.id),
+      ]);
       setRegistered(!!reg);
+      setAttendeeCount(count);
+    } finally {
       setLoadingReg(false);
     }
-    load();
   }, [event.id]);
 
-  // Refresh when login state changes
   useEffect(() => {
-    function refresh() {
-      // just re-check
-      getRegistrationForEvent(event.id).then((res) => setRegistered(!!res));
-    }
+    checkRegistrationAndCount();
+  }, [checkRegistrationAndCount]);
 
-    window.addEventListener("auth-change", refresh);
-    return () => window.removeEventListener("auth-change", refresh);
-  }, [event.id]);
+  useEffect(() => {
+    const handler = () => checkRegistrationAndCount();
+    window.addEventListener("auth-change", handler);
+    return () => window.removeEventListener("auth-change", handler);
+  }, [checkRegistrationAndCount]);
 
   async function handleSignup() {
     try {
+      setLoadingReg(true);
       await registerForEvent(event.id);
       setRegistered(true);
+
+      setAttendeeCount((prev) => (typeof prev === "number" ? prev + 1 : prev));
 
       if (onSignup) onSignup();
       if (onClose) onClose();
@@ -56,27 +66,42 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
         return;
       }
       console.error(err);
+    } finally {
+      setLoadingReg(false);
     }
   }
 
   async function handleLeave() {
-    const ok = await unregisterForEvent(event.id);
-
-    if (ok) {
-      setRegistered(false);
-      if (onUnsignup) onUnsignup();
+    try {
+      setLoadingReg(true);
+      const ok = await unregisterForEvent(event.id);
+      if (ok) {
+        setRegistered(false);
+        setAttendeeCount((prev) =>
+          typeof prev === "number" ? Math.max(0, prev - 1) : prev
+        );
+        if (onUnsignup) onUnsignup();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingReg(false);
     }
-
-    if (onClose) onClose();
   }
 
-  // After login → try again
   function handleLoginSuccess() {
     setShowLogin(false);
     handleSignup();
   }
 
-  // Handle .ics export
+  // Counter text
+  function renderAttendeeText() {
+    if (attendeeCount === null) return null;
+    if (attendeeCount === 0) return "Be the first to join";
+    if (attendeeCount === 1) return "1 person is going";
+    return `${attendeeCount} people are going`;
+  }
+
   function addToCalendar() {
     try {
       const start =
@@ -128,6 +153,10 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
             <img src={LocationIcon} className="icon" alt="" />
             <p title={event.location}>{event.location}</p>
           </div>
+
+          {renderAttendeeText() && (
+            <p className="going-counter">{renderAttendeeText()}</p>
+          )}
 
           <p className="description">{event.description}</p>
 
