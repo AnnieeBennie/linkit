@@ -158,27 +158,26 @@ export default function HomePage() {
   };
 
   // club toggle (uses DB membership service)
-  const handleToggleClub = async (clubObj) => {
-    const id = clubObj.id;
-    const currentlyJoined = joinedClubs.has(id);
+  const handleToggleClub = async (clubId) => {
+    const currentlyJoined = joinedClubs.has(clubId);
 
-    setLoadingId(id);
+    setLoadingId(clubId);
 
     try {
       if (currentlyJoined) {
-        await leaveClub(id);
+        await leaveClub(clubId);
 
         setJoinedClubs((prev) => {
           const next = new Set(prev);
-          next.delete(id);
+          next.delete(clubId);
           return next;
         });
       } else {
-        await joinClub(id);
+        await joinClub(clubId);
 
         setJoinedClubs((prev) => {
           const next = new Set(prev);
-          next.add(id);
+          next.add(clubId);
           return next;
         });
       }
@@ -256,7 +255,7 @@ export default function HomePage() {
                 key={club.id}
                 club={club}
                 isJoined={joinedClubs.has(club.id)}
-                onToggleJoin={() => handleToggleClub(club)}
+                onToggleJoin={handleToggleClub}
                 loading={loadingId === club.id}
               />
             ))}
