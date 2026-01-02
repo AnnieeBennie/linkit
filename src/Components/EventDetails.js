@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import "../css/EventDetails.css";
+import Parse from "../services/parse";
 
 import TicketIcon from "../Icons/Ticket.svg";
 import TimeIcon from "../Icons/Time Circle.svg";
@@ -14,120 +15,92 @@ import {
 } from "../services/eventSignupService";
 
 import Login from "./Login";
+import SignUp from "./SignUp";
 import { downloadICS } from "../services/calendarExport";
 
 function EventDetails({ event, onClose, onSignup, onUnsignup }) {
   const [registered, setRegistered] = useState(false);
-  const [loadingReg, setLoadingReg] = useState(false);
+  const [count, setCount] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const [showLogin, setShowLogin] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  // how many people are going
-  const [attendeeCount, setAttendeeCount] = useState(null);
-
-  // Load: am I registered + how many attendees
-  const checkRegistrationAndCount = useCallback(async () => {
-    try {
-      setLoadingReg(true);
-      const [reg, count] = await Promise.all([
-        getRegistrationForEvent(event.id),
-        getRegistrationCountForEvent(event.id),
-      ]);
+  // 1) load registration + attendee count
+  useEffect(() => {
+    async function loadInfo() {
+      setLoading(true);
+      const reg = await getRegistrationForEvent(event.id);
+      const c = await getRegistrationCountForEvent(event.id);
       setRegistered(!!reg);
-      setAttendeeCount(count);
-    } finally {
-      setLoadingReg(false);
+      setCount(c);
+      setLoading(false);
     }
+
+    loadInfo();
+
+    // refresh when login/logout happens
+    window.addEventListener("auth-change", loadInfo);
+    return () => window.removeEventListener("auth-change", loadInfo);
   }, [event.id]);
 
-  useEffect(() => {
-    checkRegistrationAndCount();
-  }, [checkRegistrationAndCount]);
-
-  useEffect(() => {
-    const handler = () => checkRegistrationAndCount();
-    window.addEventListener("auth-change", handler);
-    return () => window.removeEventListener("auth-change", handler);
-  }, [checkRegistrationAndCount]);
-
+  // 2) sign up
   async function handleSignup() {
-    try {
-      setLoadingReg(true);
-      await registerForEvent(event.id);
-      setRegistered(true);
-
-      setAttendeeCount((prev) => (typeof prev === "number" ? prev + 1 : prev));
-
-      if (onSignup) onSignup();
-      if (onClose) onClose();
-    } catch (err) {
-      const msg = err?.message || "";
-      if (msg.toLowerCase().includes("not logged")) {
-        setShowLogin(true);
-        return;
-      }
-      console.error(err);
-    } finally {
-      setLoadingReg(false);
+    if (!Parse.User.current()) {
+      setShowLoginPrompt(true);
+      return;
     }
+
+    setLoading(true);
+    await registerForEvent(event.id);
+    setRegistered(true);
+    setCount((c) => (typeof c === "number" ? c + 1 : c));
+    setLoading(false);
+
+    onSignup?.();
+    onClose?.();
   }
 
+  // 3) Leave event
   async function handleLeave() {
-    try {
-      setLoadingReg(true);
-      const ok = await unregisterForEvent(event.id);
-      if (ok) {
-        setRegistered(false);
-        setAttendeeCount((prev) =>
-          typeof prev === "number" ? Math.max(0, prev - 1) : prev
-        );
-        if (onUnsignup) onUnsignup();
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoadingReg(false);
+    setLoading(true);
+    const ok = await unregisterForEvent(event.id);
+    if (ok) {
+      setRegistered(false);
+      setCount((c) => (typeof c === "number" ? Math.max(0, c - 1) : c));
+      onUnsignup?.();
     }
+    setLoading(false);
+    onClose?.();
   }
 
-  function handleLoginSuccess() {
-    setShowLogin(false);
-    handleSignup();
-  }
-
-  // Counter text
-  function renderAttendeeText() {
-    if (attendeeCount === null) return null;
-    if (attendeeCount === 0) return "Be the first to join";
-    if (attendeeCount === 1) return "1 person is going";
-    return `${attendeeCount} people are going`;
-  }
-
+  // 4) Add to calendar
   function addToCalendar() {
-    try {
-      // Check if we have a valid start date
-      if (!(event._startDate instanceof Date) || isNaN(event._startDate)) {
-        alert("Event date is not available for calendar export.");
-        return;
-      }
-
-      const start = event._startDate;
-      const end =
-        event._endDate instanceof Date && !isNaN(event._endDate)
-          ? event._endDate
-          : new Date(start.getTime() + 60 * 60 * 1000);
-
-      downloadICS({
-        title: event.title,
-        description: event.description,
-        location: event.location,
-        start,
-        end,
-      });
-    } catch (err) {
-      console.error(err);
-      alert("Couldn't create calendar file.");
+    if (!(event._startDate instanceof Date) || isNaN(event._startDate)) {
+      alert("Event date is not available.");
+      return;
     }
+
+    const start = event._startDate;
+    const end =
+      event._endDate instanceof Date && !isNaN(event._endDate)
+        ? event._endDate
+        : new Date(start.getTime() + 60 * 60 * 1000);
+
+    downloadICS({
+      title: event.title,
+      description: event.description,
+      location: event.location,
+      start,
+      end,
+    });
   }
+
+  let goingText = "";
+  if (count === 0) goingText = "Be the first to join";
+  else if (count === 1) goingText = "1 person is going";
+  else if (typeof count === "number") goingText = `${count} people are going`;
 
   return (
     <div className="details-container">
@@ -154,9 +127,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
             <p title={event.location}>{event.location}</p>
           </div>
 
-          {renderAttendeeText() && (
-            <p className="going-counter">{renderAttendeeText()}</p>
-          )}
+          {goingText && <p className="going-counter">{goingText}</p>}
 
           <p className="description">{event.description}</p>
 
@@ -165,7 +136,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
               <button
                 className="leave-details-button"
                 onClick={handleLeave}
-                disabled={loadingReg}
+                disabled={loading}
               >
                 Leave
               </button>
@@ -173,7 +144,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
               <button
                 className="signup-details-button"
                 onClick={handleSignup}
-                disabled={loadingReg}
+                disabled={loading}
               >
                 Sign Up
               </button>
@@ -196,7 +167,66 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
         </div>
       </div>
 
-      {showLogin && <Login onSuccess={handleLoginSuccess} />}
+      {/* Login */}
+      {showLogin && (
+        <Login
+          onClose={() => setShowLogin(false)}
+          onSuccess={() => {
+            setShowLogin(false);
+            setShowLoginPrompt(false);
+            handleSignup();
+          }}
+          onShowRegister={() => {
+            setShowLogin(false);
+            setShowSignUp(true);
+          }}
+        />
+      )}
+
+      {/* Sign Up */}
+      {showSignUp && (
+        <SignUp
+          onClose={() => setShowSignUp(false)}
+          onSuccess={() => {
+            setShowSignUp(false);
+            setShowLoginPrompt(false);
+            handleSignup();
+          }}
+        />
+      )}
+
+      {/* Prompt */}
+      {showLoginPrompt && (
+        <div
+          className="auth-overlay login-prompt-overlay"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="auth-modal login-prompt-modal">
+            <h2 className="please-log-in-title">Please log in</h2>
+            <p className="hint">Log in to continue</p>
+
+            <div className="auth-actions">
+              <button
+                className="auth-submit"
+                onClick={() => {
+                  setShowLoginPrompt(false);
+                  setShowLogin(true);
+                }}
+              >
+                Log in
+              </button>
+
+              <button
+                className="auth-close secondary"
+                onClick={() => setShowLoginPrompt(false)}
+              >
+                <img src={CloseIcon} alt="close" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
