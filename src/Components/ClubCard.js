@@ -44,7 +44,8 @@ function ClubCard({
               className="join-btn"
               onClick={(e) => {
                 e.stopPropagation(); // prevent opening details
-                onToggleJoin(club.id);
+                // Route through details modal so login guard + success modal stay consistent
+                setShowDetails(true);
               }}
               disabled={loading}
             >
