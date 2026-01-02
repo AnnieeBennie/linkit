@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import "../css/Clubs.css";
 import ClubDetails from "./ClubDetails";
-import ClubSuccess from "./ClubSuccess";
 
 function ClubCard({
   club,
@@ -9,16 +8,14 @@ function ClubCard({
   isJoined,
   readOnly = false,
   loading = false,
+  onSuccess = () => {},
 }) {
   const [showDetails, setShowDetails] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleJoin = () => {
     const wasJoined = isJoined;
     onToggleJoin(club.id);
-    if (!wasJoined) {
-      setShowSuccess(true);
-    }
+    onSuccess(wasJoined ? "leave" : "join");
   };
 
   return (
@@ -64,20 +61,6 @@ function ClubCard({
               onJoin={handleJoin}
               isJoined={isJoined}
             />
-          </div>
-        </div>
-      )}
-
-      {showSuccess && (
-        <div
-          className="details-success-overlay"
-          onClick={() => setShowSuccess(false)}
-        >
-          <div
-            className="details-success-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ClubSuccess onClose={() => setShowSuccess(false)} />
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "../css/Clubs.css";
 import ClubCard from "../Components/ClubCard";
 import ClubFilter from "../Components/ClubFilter";
+import ClubSuccess from "../Components/ClubSuccess";
 import "../css/ClubFilter.css";
 
 import { fetchClubs } from "../services/clubService";
@@ -17,6 +18,8 @@ export default function Clubs() {
   const [loading, setLoading] = useState(true);
   const [error] = useState(null);
   const [filter, setFilter] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMode, setSuccessMode] = useState("join");
 
   // Filter logic
   let filteredClubs = clubs;
@@ -67,6 +70,11 @@ export default function Clubs() {
     }
   }
 
+  function handleSuccess(mode) {
+    setSuccessMode(mode);
+    setShowSuccess(true);
+  }
+
   if (loading) return <div className="PageTitle">Loading clubs…</div>;
   if (error) return <div className="PageTitle">Failed to load clubs</div>;
 
@@ -84,11 +92,26 @@ export default function Clubs() {
               club={club}
               isJoined={joinedClubs.includes(club.id)}
               onToggleJoin={handleToggleJoin}
+              onSuccess={handleSuccess}
             />
           ))}
         </div>
       ) : (
         <div className="no-results">No matches for your filter</div>
+      )}
+
+      {showSuccess && (
+        <div className="details-success-overlay">
+          <div
+            className="details-success-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ClubSuccess
+              mode={successMode}
+              onClose={() => setShowSuccess(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
