@@ -6,12 +6,12 @@ function ClubCard({
   club,
   onToggleJoin,
   isJoined,
-  readOnly = false,
   loading = false,
   onSuccess = () => {},
 }) {
   const [showDetails, setShowDetails] = useState(false);
 
+  // Handle join/leave action and open success popup
   const handleJoin = async () => {
     const wasJoined = isJoined;
     await onToggleJoin(club.id);
@@ -20,6 +20,7 @@ function ClubCard({
 
   return (
     <>
+      {/* Club card */}
       <div className="club-card" onClick={() => setShowDetails(true)}>
         <img src={club.image} alt={club.name} className="club-image" />
 
@@ -27,7 +28,7 @@ function ClubCard({
           <p className="club-category">{club.category}</p>
           <h2 className="club-title">{club.name}</h2>
 
-          {/* SHORT DESCRIPTION */}
+          {/* Description */}
           {club.description && (
             <p className="club-short-description">
               {club.description.length > 80
@@ -36,22 +37,20 @@ function ClubCard({
             </p>
           )}
 
-          {!readOnly && (
-            <button
-              className={isJoined ? "leave-btn" : "join-btn"}
-              onClick={(e) => {
-                e.stopPropagation(); // prevent opening details
-                // Route through details modal so login guard + success modal stay consistent
-                setShowDetails(true);
-              }}
-              disabled={loading}
-            >
-              {isJoined ? "Leave" : "Join"}
-            </button>
-          )}
+          {/* Join/Leave button */}
+          <button
+            className={isJoined ? "leave-btn" : "join-btn"}
+            onClick={() => {
+              setShowDetails(true);
+            }}
+            disabled={loading}
+          >
+            {isJoined ? "Leave" : "Join"}
+          </button>
         </div>
       </div>
 
+      {/* Details popup overlay with full club info and login */}
       {showDetails && (
         <div className="details-overlay" onClick={() => setShowDetails(false)}>
           <div className="details-modal" onClick={(e) => e.stopPropagation()}>

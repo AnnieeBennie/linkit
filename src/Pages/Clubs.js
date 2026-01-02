@@ -13,18 +13,25 @@ import {
 } from "../services/membershipService";
 
 export default function Clubs() {
+
+  // State for clubs list and user's joined clubs
   const [clubs, setClubs] = useState([]);
   const [joinedClubs, setJoinedClubs] = useState([]); // only source of truth
+  
+  // State for loading, error handling and UI 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState(null);
+  
+  // State for success popup after joining/leaving
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMode, setSuccessMode] = useState("join");
+  
+  // Track which clubs are processing join/leave to prevent double-clicks
   const [pendingClubIds, setPendingClubIds] = useState(new Set());
 
-  // Filter logic
-  let filteredClubs = clubs;
 
+  let filteredClubs = clubs;
   if (filter === "My Clubs") {
     filteredClubs = clubs.filter((c) => joinedClubs.includes(c.id));
   } else if (filter) {
@@ -37,7 +44,7 @@ export default function Clubs() {
       setError(null);
 
       try {
-        // Load clubs
+        // Fetch all clubs from db
         const data = await fetchClubs();
         const clubList = data.map((club) => {
           const img = club.get("image");
@@ -49,10 +56,9 @@ export default function Clubs() {
             image: img ? img.url() : undefined,
           };
         });
-
         setClubs(clubList);
 
-        // Load user's joined club IDs
+        // Load current user's joined club IDs
         const joinedIds = await loadJoinedClubs();
         setJoinedClubs(joinedIds);
       } catch (err) {
@@ -66,21 +72,24 @@ export default function Clubs() {
     loadEverything();
   }, []);
 
-  // JOIN / LEAVE
+  // Handle club join/leave
   async function handleToggleJoin(clubId) {
-    if (pendingClubIds.has(clubId)) return; // ignore double clicks while pending
+    if (pendingClubIds.has(clubId)) return;
 
     setPendingClubIds((prev) => new Set(prev).add(clubId));
 
     try {
       if (joinedClubs.includes(clubId)) {
+        // User is already in club, so leave it
         await leaveClub(clubId);
         setJoinedClubs((prev) => prev.filter((id) => id !== clubId));
       } else {
+        // User is not in club, so join it
         await joinClub(clubId);
         setJoinedClubs((prev) => [...prev, clubId]);
       }
     } finally {
+      // Always clear pending state, even if request fails
       setPendingClubIds((prev) => {
         const next = new Set(prev);
         next.delete(clubId);
@@ -89,6 +98,7 @@ export default function Clubs() {
     }
   }
 
+  // Show success modal with appropriate message (join or leave)
   function handleSuccess(mode) {
     setSuccessMode(mode);
     setShowSuccess(true);

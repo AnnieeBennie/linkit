@@ -66,6 +66,19 @@
   background: var(--dark_blue);
 }
 
+.leave-details-button2 {
+  background: var(--dark_blue);
+  color: var(--beige);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.leave-details-button2:hover {
+  background: var(--orange);
+}
+
 .group-chat2 {
   background: var(--dark_blue);
   color: var(--beige);

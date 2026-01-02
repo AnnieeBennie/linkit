@@ -4,20 +4,26 @@ import CloseIcon from "../Icons/close.svg";
 
 import Parse from "../services/parse";
 import Login from "./Login";
+import SignUp from "./SignUp";
 import "../css/AuthModal.css";
 
 function ClubDetails({ club, onClose, onJoin, isJoined }) {
+  // login popup
   const [showLogin, setShowLogin] = useState(false);
+  
+  // signup popup
+  const [showSignUp, setShowSignUp] = useState(false);
+  
+  // "login required" prompt
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
+  
+  // check if user is logged in
   function handleJoin() {
-    // If not logged in: show prompt, do NOT close details
     if (!Parse.User.current()) {
       setShowLoginPrompt(true);
       return;
     }
-
-    // Logged in: proceed as before
     if (onJoin) onJoin();
     if (onClose) onClose();
   }
@@ -34,7 +40,7 @@ function ClubDetails({ club, onClose, onJoin, isJoined }) {
         </button>
 
         <div className="details-inner2">
-          {/* LEFT SIDE */}
+          {/* Left side: club info and join/leave button */}
           <div className="details-left2">
             <h2 className="title2">{club.name}</h2>
 
@@ -45,14 +51,17 @@ function ClubDetails({ club, onClose, onJoin, isJoined }) {
             <p className="description2">{club.description}</p>
 
             <div className="actions2">
-              <button className="signup-details-button2" onClick={handleJoin}>
+              <button 
+                className={isJoined ? "leave-details-button2" : "signup-details-button2"} 
+                onClick={handleJoin}
+              >
                 {isJoined ? "Leave" : "Join"}
               </button>
               <button className="group-chat2">Group Chat</button>
             </div>
           </div>
 
-          {/* RIGHT SIDE IMAGE */}
+          {/* Right side: club image */}
           <div className="details-right2">
             {club.image ? (
               <img src={club.image} alt={club.name} className="event-image2" />
@@ -63,12 +72,28 @@ function ClubDetails({ club, onClose, onJoin, isJoined }) {
         </div>
       </div>
 
-      {/* Existing Login popup */}
+      {/* Login */}
       {showLogin && (
         <Login
           onClose={() => setShowLogin(false)}
           onSuccess={() => {
             setShowLogin(false);
+            setShowLoginPrompt(false);
+            handleJoin();
+          }}
+          onShowRegister={() => {
+            setShowLogin(false);
+            setShowSignUp(true);
+          }}
+        />
+      )}
+
+      {/* Sign Up */}
+      {showSignUp && (
+        <SignUp
+          onClose={() => setShowSignUp(false)}
+          onSuccess={() => {
+            setShowSignUp(false);
             setShowLoginPrompt(false);
             handleJoin();
           }}

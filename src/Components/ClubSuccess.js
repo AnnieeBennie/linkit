@@ -5,8 +5,9 @@ import { useNavigate } from "react-router-dom";
 
 function ClubSuccess({ onClose, mode = "join" }) {
   const navigate = useNavigate();
+  
+  // Determine message based on action (join or leave)
   const isLeave = mode === "leave";
-
   const title = isLeave ? "See you next time!" : "Success!";
   const message = isLeave
     ? "You've left this club. Come back anytime!"
