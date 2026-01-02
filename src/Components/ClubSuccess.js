@@ -22,7 +22,7 @@ function ClubSuccess({ onClose }) {
         <h3 className="text">Check out other clubs you might like.</h3>
 
         <button
-          className="see-other-events"
+          className="see-other"
           onClick={() => {
             if (onClose) onClose();
             navigate("/clubs");

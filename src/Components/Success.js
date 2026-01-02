@@ -26,7 +26,7 @@ function Success({ onClose, mode = "signup" }) {
         <h3 className="text">{message}</h3>
 
         <button
-          className="see-other-events"
+          className="see-other"
           onClick={() => {
             if (onClose) onClose();
             navigate("/events");
