@@ -8,20 +8,13 @@ import SignUp from "./SignUp";
 import "../css/AuthModal.css";
 
 function ClubDetails({ club, onClose, onJoin, isJoined }) {
-  // login popup
-  const [showLogin, setShowLogin] = useState(false);
-  
-  // signup popup
-  const [showSignUp, setShowSignUp] = useState(false);
-  
-  // "login required" prompt
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  // Track which modal is open: null, "prompt", "login", or "signup"
+  const [modalType, setModalType] = useState(null);
 
-  
-  // check if user is logged in
+  // Check if user is logged in
   function handleJoin() {
     if (!Parse.User.current()) {
-      setShowLoginPrompt(true);
+      setModalType("prompt");
       return;
     }
     if (onJoin) onJoin();
@@ -73,35 +66,30 @@ function ClubDetails({ club, onClose, onJoin, isJoined }) {
       </div>
 
       {/* Login */}
-      {showLogin && (
+      {modalType === "login" && (
         <Login
-          onClose={() => setShowLogin(false)}
+          onClose={() => setModalType(null)}
           onSuccess={() => {
-            setShowLogin(false);
-            setShowLoginPrompt(false);
+            setModalType(null);
             handleJoin();
           }}
-          onShowRegister={() => {
-            setShowLogin(false);
-            setShowSignUp(true);
-          }}
+          onShowRegister={() => setModalType("signup")}
         />
       )}
 
       {/* Sign Up */}
-      {showSignUp && (
+      {modalType === "signup" && (
         <SignUp
-          onClose={() => setShowSignUp(false)}
+          onClose={() => setModalType(null)}
           onSuccess={() => {
-            setShowSignUp(false);
-            setShowLoginPrompt(false);
+            setModalType(null);
             handleJoin();
           }}
         />
       )}
 
       {/* Login required prompt */}
-      {showLoginPrompt && (
+      {modalType === "prompt" && (
         <div
           className="auth-overlay login-prompt-overlay"
           role="dialog"
@@ -114,17 +102,14 @@ function ClubDetails({ club, onClose, onJoin, isJoined }) {
             <div className="auth-actions">
               <button
                 className="auth-submit"
-                onClick={() => {
-                  setShowLoginPrompt(false);
-                  setShowLogin(true);
-                }}
+                onClick={() => setModalType("login")}
               >
                 Log in
               </button>
 
               <button
                 className="auth-close secondary"
-                onClick={() => setShowLoginPrompt(false)}
+                onClick={() => setModalType(null)}
               >
                 <img src={CloseIcon} alt="close" />
               </button>
