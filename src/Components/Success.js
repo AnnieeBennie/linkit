@@ -7,9 +7,9 @@ function Success({ onClose, mode = "signup" }) {
   const navigate = useNavigate();
   const isLeave = mode === "leave";
 
-  const title = "Success!";
+  const title = isLeave ? "See you next time!" : "Success!";
   const message = isLeave
-    ? "You successfully left this event."
+    ? "You've left this event. Come back anytime!"
     : "You successfully signed up for a new event! We are waiting to see you soon!";
 
   return (
