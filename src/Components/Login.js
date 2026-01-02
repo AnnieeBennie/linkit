@@ -27,9 +27,7 @@ function Login({
       // notify other components that auth state changed
       try {
         window.dispatchEvent(new Event("auth-change"));
-      } catch (e) {
-        /* ignore in non-browser tests */
-      }
+      } catch (e) {}
       onClose();
     } catch (err) {
       setLoading(false);
