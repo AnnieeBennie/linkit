@@ -2,22 +2,24 @@
 
 .details-container2 {
   position: relative;
-  padding: 24px;
+  padding: 48px;
   border-radius: 12px;
   background: var(--dark_beige);
   color: var(--dark_blue);
-  max-width: 900px;
+  max-width: 1200px;
   width: 100%;
   box-sizing: border-box;
 }
 
 .details-close2 {
+  top: 20px;
   right: 24px;
   background: transparent;
   border: none;
   cursor: pointer;
   display: flex;
   position: absolute;
+  z-index: 10;
 }
 
 .details-inner2 {
