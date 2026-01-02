@@ -20,6 +20,7 @@ export default function Clubs() {
   const [filter, setFilter] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMode, setSuccessMode] = useState("join");
+  const [pendingClubIds, setPendingClubIds] = useState(new Set());
 
   // Filter logic
   let filteredClubs = clubs;
@@ -67,12 +68,24 @@ export default function Clubs() {
 
   // JOIN / LEAVE
   async function handleToggleJoin(clubId) {
-    if (joinedClubs.includes(clubId)) {
-      await leaveClub(clubId);
-      setJoinedClubs((prev) => prev.filter((id) => id !== clubId));
-    } else {
-      await joinClub(clubId);
-      setJoinedClubs((prev) => [...prev, clubId]);
+    if (pendingClubIds.has(clubId)) return; // ignore double clicks while pending
+
+    setPendingClubIds((prev) => new Set(prev).add(clubId));
+
+    try {
+      if (joinedClubs.includes(clubId)) {
+        await leaveClub(clubId);
+        setJoinedClubs((prev) => prev.filter((id) => id !== clubId));
+      } else {
+        await joinClub(clubId);
+        setJoinedClubs((prev) => [...prev, clubId]);
+      }
+    } finally {
+      setPendingClubIds((prev) => {
+        const next = new Set(prev);
+        next.delete(clubId);
+        return next;
+      });
     }
   }
 
@@ -99,6 +112,7 @@ export default function Clubs() {
               isJoined={joinedClubs.includes(club.id)}
               onToggleJoin={handleToggleJoin}
               onSuccess={handleSuccess}
+              loading={pendingClubIds.has(club.id)}
             />
           ))}
         </div>

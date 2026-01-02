@@ -12,9 +12,9 @@ function ClubCard({
 }) {
   const [showDetails, setShowDetails] = useState(false);
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     const wasJoined = isJoined;
-    onToggleJoin(club.id);
+    await onToggleJoin(club.id);
     onSuccess(wasJoined ? "leave" : "join");
   };
 
