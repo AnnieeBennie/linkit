@@ -16,7 +16,7 @@ export default function Clubs() {
   const [clubs, setClubs] = useState([]);
   const [joinedClubs, setJoinedClubs] = useState([]); // only source of truth
   const [loading, setLoading] = useState(true);
-  const [error] = useState(null);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMode, setSuccessMode] = useState("join");
@@ -33,27 +33,33 @@ export default function Clubs() {
   useEffect(() => {
     async function loadEverything() {
       setLoading(true);
+      setError(null);
 
-      // Load clubs
-      const data = await fetchClubs();
-      const clubList = data.map((club) => {
-        const img = club.get("image");
-        return {
-          id: club.id,
-          name: club.get("name"),
-          category: club.get("category"),
-          description: club.get("club_description"),
-          image: img ? img.url() : undefined,
-        };
-      });
+      try {
+        // Load clubs
+        const data = await fetchClubs();
+        const clubList = data.map((club) => {
+          const img = club.get("image");
+          return {
+            id: club.id,
+            name: club.get("name"),
+            category: club.get("category"),
+            description: club.get("club_description"),
+            image: img ? img.url() : undefined,
+          };
+        });
 
-      setClubs(clubList);
+        setClubs(clubList);
 
-      // Load user's joined club IDs
-      const joinedIds = await loadJoinedClubs();
-      setJoinedClubs(joinedIds);
-
-      setLoading(false);
+        // Load user's joined club IDs
+        const joinedIds = await loadJoinedClubs();
+        setJoinedClubs(joinedIds);
+      } catch (err) {
+        console.error("Failed to load clubs", err);
+        setError("Failed to load clubs");
+      } finally {
+        setLoading(false);
+      }
     }
 
     loadEverything();
