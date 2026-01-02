@@ -38,7 +38,7 @@ function ClubCard({
 
           {!readOnly && (
             <button
-              className="join-btn"
+              className={isJoined ? "leave-btn" : "join-btn"}
               onClick={(e) => {
                 e.stopPropagation(); // prevent opening details
                 // Route through details modal so login guard + success modal stay consistent
