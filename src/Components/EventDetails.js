@@ -104,13 +104,13 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
 
   function addToCalendar() {
     try {
-      const start =
-        event._startDate instanceof Date && !isNaN(event._startDate)
-          ? event._startDate
-          : event.date
-          ? new Date(event.date)
-          : new Date();
+      // Check if we have a valid start date
+      if (!(event._startDate instanceof Date) || isNaN(event._startDate)) {
+        alert("Event date is not available for calendar export.");
+        return;
+      }
 
+      const start = event._startDate;
       const end =
         event._endDate instanceof Date && !isNaN(event._endDate)
           ? event._endDate
