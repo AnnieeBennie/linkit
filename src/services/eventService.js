@@ -2,19 +2,6 @@ import Parse from "./parse";
 
 /* ---------------------- DATE HELPERS ---------------------- */
 
-function parseDate(obj, fields) {
-  for (let f of fields) {
-    const value = obj.get(f);
-    if (value) {
-      const date = new Date(value);
-      if (date.toString() !== "Invalid Date") {
-        return date;
-      }
-    }
-  }
-  return null;
-}
-
 function formatDateRange(start, end) {
   if (!start) return "";
 
@@ -41,7 +28,7 @@ export async function fetchEvents() {
   try {
     const Event = Parse.Object.extend("Events");
     const q = new Parse.Query(Event);
-    q.ascending("startDate");
+    q.ascending("start_date");
 
     const results = await q.find();
 
