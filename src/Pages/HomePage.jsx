@@ -1,6 +1,5 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "../css/Home.css";
-import { RECENT_EVENTS, YOUR_CLUBS } from "../mock/events";
 
 import EventCard from "../Components/EventCard";
 import ClubCard from "../Components/ClubCard";
@@ -11,81 +10,263 @@ import AnnouncementBanner from "../Components/AnnouncementBanner";
 import SectionTitle from "../Components/SectionTitle";
 import HorizontalRow from "../Components/HorizontalRow";
 
-const mapToEventProp = (e) => ({
-  image: e.img,
-  title: e.title,
-  category: e.category,
-  organizer: e.org,
-  date: e.date,
-  time: e.time,
-  location: e.location,
-});
-
-const mapToClubProp = (c) => ({
-  image: c.img,
-  name: c.name,
-  category: c.category,
-  joined: c.joined ?? false,
-});
-
-const noop = () => {};
+import { fetchEvents } from "../services/eventService";
+import { fetchClubs } from "../services/clubService";
+import { getRegisteredEventIdsForCurrentUser } from "../services/eventSignupService";
+import {
+  loadJoinedClubs,
+  joinClub,
+  leaveClub,
+} from "../services/membershipService";
 
 export default function HomePage() {
-  const YOUR_EVENTS = RECENT_EVENTS.slice(0, 5);
+  const [events, setEvents] = useState([]);
+  const [clubs, setClubs] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [joinedEvents, setJoinedEvents] = useState(() => new Set());
+  const [joinedClubs, setJoinedClubs] = useState(() => new Set());
+  const [loadingId, setLoadingId] = useState(null); // for club buttons
+
+  const [eventFilter, setEventFilter] = useState(null);
+  const [clubFilter, setClubFilter] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadHomeData() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [eventsFromDb, clubsFromDb] = await Promise.all([
+          fetchEvents(),
+          fetchClubs(),
+        ]);
+
+        if (cancelled) return;
+
+        const clubList = (clubsFromDb || []).map((club) => {
+          const img = club.get("image");
+          return {
+            id: club.id,
+            name: club.get("name"),
+            category: club.get("category"),
+            description: club.get("club_description"),
+            image: img ? img.url() : undefined,
+          };
+        });
+
+        setEvents(eventsFromDb || []);
+        setClubs(clubList);
+
+        const [eventIds, clubIds] = await Promise.all([
+          getRegisteredEventIdsForCurrentUser().catch(() => []),
+          loadJoinedClubs().catch(() => []),
+        ]);
+
+        if (cancelled) return;
+
+        setJoinedEvents(new Set(eventIds || []));
+        setJoinedClubs(new Set(clubIds || []));
+      } catch (err) {
+        if (!cancelled) {
+          console.error(err);
+          setError(err?.message || "Something went wrong loading home data.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadHomeData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    async function reloadMembership() {
+      try {
+        const [eventIds, clubIds] = await Promise.all([
+          getRegisteredEventIdsForCurrentUser().catch(() => []),
+          loadJoinedClubs().catch(() => []),
+        ]);
+
+        setJoinedEvents(new Set(eventIds || []));
+        setJoinedClubs(new Set(clubIds || []));
+      } catch (err) {
+        console.error("Failed to reload membership on auth-change", err);
+      }
+    }
+
+    const handler = () => {
+      reloadMembership();
+    };
+
+    window.addEventListener("auth-change", handler);
+    return () => window.removeEventListener("auth-change", handler);
+  }, []);
+
+  // 6 newest events (“Recently added”)
+  const recentEvents = useMemo(() => {
+    if (!events || events.length === 0) return [];
+    const sorted = [...events].sort((a, b) => {
+      const da = a.createdAt ? new Date(a.createdAt) : 0;
+      const db = b.createdAt ? new Date(b.createdAt) : 0;
+      return db - da; // newest first
+    });
+    return sorted.slice(0, 6);
+  }, [events]);
+
+  // Events that the user has signed up for
+  const yourEvents = useMemo(
+    () => events.filter((e) => joinedEvents.has(e.id)),
+    [events, joinedEvents]
+  );
+
+  const filteredYourEvents = useMemo(() => {
+    if (!eventFilter) return yourEvents;
+    return yourEvents.filter((e) => e.category === eventFilter);
+  }, [yourEvents, eventFilter]);
+
+  // Clubs that the user has joined
+  const yourClubs = useMemo(
+    () => clubs.filter((c) => joinedClubs.has(c.id)),
+    [clubs, joinedClubs]
+  );
+
+  const filteredYourClubs = useMemo(() => {
+    if (!clubFilter) return yourClubs;
+    return yourClubs.filter((c) => c.category === clubFilter);
+  }, [yourClubs, clubFilter]);
+
+  const handleEventRegistrationChange = (action, eventId) => {
+    setJoinedEvents((prev) => {
+      const next = new Set(prev);
+      if (action === "signup") {
+        next.add(eventId);
+      } else if (action === "leave") {
+        next.delete(eventId);
+      }
+      return next;
+    });
+  };
+
+  // club toggle (uses DB membership service)
+  const handleToggleClub = async (clubId) => {
+    const currentlyJoined = joinedClubs.has(clubId);
+
+    setLoadingId(clubId);
+
+    try {
+      if (currentlyJoined) {
+        await leaveClub(clubId);
+
+        setJoinedClubs((prev) => {
+          const next = new Set(prev);
+          next.delete(clubId);
+          return next;
+        });
+      } else {
+        await joinClub(clubId);
+
+        setJoinedClubs((prev) => {
+          const next = new Set(prev);
+          next.add(clubId);
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error("Something went wrong updating your club membership.", err);
+    } finally {
+      setLoadingId(null);
+    }
+  };
 
   return (
     <>
       <AnnouncementBanner />
+
       <main className="container home">
         <SectionTitle variant="h1">Yooo, Welcome!</SectionTitle>
 
-        {/* Recently added */}
+        {loading && (
+          <div className="home-loading">Loading your events and clubs…</div>
+        )}
+        {error && <div className="home-error">{error}</div>}
+
+        {/* Recently added events (DB, 6 newest) */}
         <SectionTitle variant="h2">Recently Added Events</SectionTitle>
-        <HorizontalRow ariaLabel="Recently added events">
-          {RECENT_EVENTS.length > 0 ? (
-            RECENT_EVENTS.map((e) => (
-              <EventCard key={e.id} event={mapToEventProp(e)} />
-            ))
-          ) : (
-            <div className="no-results">No events available</div>
-          )}
-        </HorizontalRow>
+        {recentEvents.length > 0 ? (
+          <HorizontalRow ariaLabel="Recently added events">
+            {recentEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                joined={joinedEvents.has(event.id)}
+                onRegistrationChange={handleEventRegistrationChange}
+              />
+            ))}
+          </HorizontalRow>
+        ) : (
+          !loading && (
+            <div className="home-no-results">
+              No events available right now.
+            </div>
+          )
+        )}
 
-        {/* Your events */}
+        {/* Your events = events you actually registered for */}
         <SectionTitle variant="h2">Your Events</SectionTitle>
-        <EventFilter events={YOUR_EVENTS}>
-          {(filteredEvents) => (
-            <HorizontalRow ariaLabel="Your events">
-              {filteredEvents.length > 0 ? (
-                filteredEvents.map((e) => (
-                  <EventCard key={`mine-${e.id}`} event={mapToEventProp(e)} />
-                ))
-              ) : (
-                <div className="no-results">You have no upcoming events</div>
-              )}
-            </HorizontalRow>
-          )}
-        </EventFilter>
+        <EventFilter onFilter={setEventFilter} hideRegisteredEvents />
 
-        {/* Your clubs */}
+        {filteredYourEvents.length > 0 ? (
+          <HorizontalRow ariaLabel="Your events">
+            {filteredYourEvents.map((event) => (
+              <EventCard
+                key={`mine-${event.id}`}
+                event={event}
+                joined={joinedEvents.has(event.id)}
+                onRegistrationChange={handleEventRegistrationChange}
+              />
+            ))}
+          </HorizontalRow>
+        ) : (
+          !loading && (
+            <div className="home-no-results">
+              You have no upcoming events. Go sign up for some!
+            </div>
+          )
+        )}
+
+        {/* Your clubs = clubs you actually joined */}
         <SectionTitle variant="h2">Your Clubs</SectionTitle>
-        <ClubFilter clubs={YOUR_CLUBS}>
-          {(filteredClubs) => (
-            <HorizontalRow ariaLabel="Your clubs">
-              {filteredClubs.length > 0 ? (
-                filteredClubs.map((c) => (
-                  <ClubCard
-                    key={c.id}
-                    club={mapToClubProp(c)}
-                    onToggleJoin={noop}
-                  />
-                ))
-              ) : (
-                <div className="no-results">You have not joined any clubs</div>
-              )}
-            </HorizontalRow>
-          )}
-        </ClubFilter>
+        <ClubFilter onFilter={setClubFilter} hideMyClubs />
+
+        {filteredYourClubs.length > 0 ? (
+          <HorizontalRow ariaLabel="Your clubs">
+            {filteredYourClubs.map((club) => (
+              <ClubCard
+                key={club.id}
+                club={club}
+                isJoined={joinedClubs.has(club.id)}
+                onToggleJoin={handleToggleClub}
+                loading={loadingId === club.id}
+              />
+            ))}
+          </HorizontalRow>
+        ) : (
+          !loading && (
+            <div className="home-no-results">
+              You have not joined any clubs yet.
+            </div>
+          )
+        )}
       </main>
     </>
   );

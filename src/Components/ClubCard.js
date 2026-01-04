@@ -1,27 +1,69 @@
-import React from "react";
+import React, { useState } from "react";
 import "../css/Clubs.css";
+import ClubDetails from "./ClubDetails";
 
-function ClubCard({ club, onToggleJoin }) {
-    
+function ClubCard({
+  club,
+  onToggleJoin,
+  isJoined,
+  loading = false,
+  onSuccess = () => {},
+}) {
+  const [showDetails, setShowDetails] = useState(false);
+
+  // Handle join/leave action and open success popup
+  const handleJoin = async () => {
+    const wasJoined = isJoined;
+    await onToggleJoin(club.id);
+    onSuccess(wasJoined ? "leave" : "join");
+  };
+
   return (
-    <div className="club-card">
-      <img src={club.image} alt={club.name} className="club-image" />
+    <>
+      {/* Club card */}
+      <div className="club-card" onClick={() => setShowDetails(true)}>
+        <img src={club.image} alt={club.name} className="club-image" />
 
-      <div className="club-info">
+        <div className="club-info">
+          <p className="club-category">{club.category}</p>
+          <h2 className="club-title">{club.name}</h2>
 
-        <p className="club-category">{club.category}</p>
+          {/* Description */}
+          {club.description && (
+            <p className="club-short-description">
+              {club.description.length > 80
+                ? club.description.substring(0, 80) + "..."
+                : club.description}
+            </p>
+          )}
 
-        <h2 className="club-title">{club.name}</h2>
-
-        <button
-          className={club.joined ? "leave-btn" : "join-btn"}
-          onClick={() => onToggleJoin(club.id)}
-        >
-          {club.joined ? "Leave" : "Sign Up"}
-        </button>
-
+          {/* Join/Leave button */}
+          <button
+            className={isJoined ? "leave-btn" : "join-btn"}
+            onClick={() => {
+              setShowDetails(true);
+            }}
+            disabled={loading}
+          >
+            {isJoined ? "Leave" : "Join"}
+          </button>
+        </div>
       </div>
-    </div>
+
+      {/* Details popup overlay with full club info and login */}
+      {showDetails && (
+        <div className="details-overlay" onClick={() => setShowDetails(false)}>
+          <div className="details-modal" onClick={(e) => e.stopPropagation()}>
+            <ClubDetails
+              club={club}
+              onClose={() => setShowDetails(false)}
+              onJoin={handleJoin}
+              isJoined={isJoined}
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
