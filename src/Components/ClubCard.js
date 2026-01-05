@@ -1,28 +1,26 @@
 import React, { useState } from "react";
 import "../css/Clubs.css";
 import ClubDetails from "./ClubDetails";
-import ClubSuccess from "./ClubSuccess";
 
 function ClubCard({
   club,
   onToggleJoin,
   isJoined,
-  readOnly = false,
   loading = false,
+  onSuccess = () => {},
 }) {
   const [showDetails, setShowDetails] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleJoin = () => {
+  // Handle join/leave action and open success popup
+  const handleJoin = async () => {
     const wasJoined = isJoined;
-    onToggleJoin(club.id);
-    if (!wasJoined) {
-      setShowSuccess(true);
-    }
+    await onToggleJoin(club.id);
+    onSuccess(wasJoined ? "leave" : "join");
   };
 
   return (
     <>
+      {/* Club card */}
       <div className="club-card" onClick={() => setShowDetails(true)}>
         <img src={club.image} alt={club.name} className="club-image" />
 
@@ -30,7 +28,7 @@ function ClubCard({
           <p className="club-category">{club.category}</p>
           <h2 className="club-title">{club.name}</h2>
 
-          {/* SHORT DESCRIPTION */}
+          {/* Description */}
           {club.description && (
             <p className="club-short-description">
               {club.description.length > 80
@@ -39,21 +37,20 @@ function ClubCard({
             </p>
           )}
 
-          {!readOnly && (
-            <button
-              className="join-btn"
-              onClick={(e) => {
-                e.stopPropagation(); // prevent opening details
-                onToggleJoin(club.id);
-              }}
-              disabled={loading}
-            >
-              {isJoined ? "Leave" : "Join"}
-            </button>
-          )}
+          {/* Join/Leave button */}
+          <button
+            className={isJoined ? "leave-btn" : "join-btn"}
+            onClick={() => {
+              setShowDetails(true);
+            }}
+            disabled={loading}
+          >
+            {isJoined ? "Leave" : "Join"}
+          </button>
         </div>
       </div>
 
+      {/* Details popup overlay with full club info and login */}
       {showDetails && (
         <div className="details-overlay" onClick={() => setShowDetails(false)}>
           <div className="details-modal" onClick={(e) => e.stopPropagation()}>
@@ -63,20 +60,6 @@ function ClubCard({
               onJoin={handleJoin}
               isJoined={isJoined}
             />
-          </div>
-        </div>
-      )}
-
-      {showSuccess && (
-        <div
-          className="details-success-overlay"
-          onClick={() => setShowSuccess(false)}
-        >
-          <div
-            className="details-success-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ClubSuccess onClose={() => setShowSuccess(false)} />
           </div>
         </div>
       )}
