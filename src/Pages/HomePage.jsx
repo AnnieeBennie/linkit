@@ -5,6 +5,7 @@ import EventCard from "../Components/EventCard";
 import ClubCard from "../Components/ClubCard";
 import EventFilter from "../Components/EventFilter";
 import ClubFilter from "../Components/ClubFilter";
+import ClubSuccess from "../Components/ClubSuccess";
 
 import AnnouncementBanner from "../Components/AnnouncementBanner";
 import SectionTitle from "../Components/SectionTitle";
@@ -33,6 +34,7 @@ export default function HomePage() {
   const [eventFilter, setEventFilter] = useState(null);
   const [clubFilter, setClubFilter] = useState(null);
 
+  const [showLeaveSuccess, setShowLeaveSuccess] = useState(false);
   useEffect(() => {
     let cancelled = false;
 
@@ -172,6 +174,7 @@ export default function HomePage() {
           next.delete(clubId);
           return next;
         });
+        setShowLeaveSuccess(true);
       } else {
         await joinClub(clubId);
 
@@ -268,6 +271,16 @@ export default function HomePage() {
           )
         )}
       </main>
+      {showLeaveSuccess && (
+        <div className="details-success-overlay">
+          <div className="details-success-modal">
+            <ClubSuccess
+              mode="leave"
+              onClose={() => setShowLeaveSuccess(false)}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }
