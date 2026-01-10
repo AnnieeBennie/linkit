@@ -22,42 +22,61 @@ function formatDateRange(start, end) {
   return date + " | " + startTime;
 }
 
+/* ---------------------- TRANSFORMATION HELPERS ---------------------- */
+
+function getEventDates(rawEvent) {
+  const start = rawEvent.get("start_date");
+  const end = rawEvent.get("end_date");
+
+  const _startDate = start ? new Date(start) : null;
+  const _endDate = end ? new Date(end) : null;
+
+  return {
+    _startDate,
+    _endDate,
+    formattedDate: _startDate
+      ? formatDateRange(_startDate, _endDate)
+      : rawEvent.get("date") || "",
+  };
+}
+
+function getEventImage(rawEvent) {
+  const img = rawEvent.get("image");
+  return img ? img.url() : undefined;
+}
+
+function transformEventObject(rawEvent) {
+  const { _startDate, _endDate, formattedDate } = getEventDates(rawEvent);
+  const image = getEventImage(rawEvent);
+
+  return {
+    id: rawEvent.id,
+    title: rawEvent.get("title") || "",
+    category: rawEvent.get("category") || "",
+    organizer: rawEvent.get("organizer") || "",
+    date: formattedDate,
+    location: rawEvent.get("location") || "",
+    image,
+    description: rawEvent.get("event_description"),
+    _startDate,
+    _endDate,
+  };
+}
+
+function createEventQuery() {
+  const Event = Parse.Object.extend("Events");
+  const q = new Parse.Query(Event);
+  q.ascending("start_date");
+  return q;
+}
+
 /* ---------------------- MAIN FETCH FUNCTION ---------------------- */
 
 export async function fetchEvents() {
   try {
-    const Event = Parse.Object.extend("Events");
-    const q = new Parse.Query(Event);
-    q.ascending("start_date");
-
+    const q = createEventQuery();
     const results = await q.find();
-
-    return results.map((o) => {
-      // get start/end date from the most common fields
-      const start = o.get("start_date");
-      const end = o.get("end_date");
-
-      //  convert to JS Date if they exist
-      const _startDate = start ? new Date(start) : null;
-      const _endDate = end ? new Date(end) : null;
-
-      const img = o.get("image");
-
-      return {
-        id: o.id,
-        title: o.get("title") || "",
-        category: o.get("category") || "",
-        organizer: o.get("organizer") || "",
-        date: _startDate
-          ? formatDateRange(_startDate, _endDate)
-          : o.get("date") || "",
-        location: o.get("location") || "",
-        image: img ? img.url() : undefined,
-        description: o.get("event_description"),
-        _startDate,
-        _endDate,
-      };
-    });
+    return results.map(transformEventObject);
   } catch (err) {
     console.error("fetchEvents error", err);
     return [];

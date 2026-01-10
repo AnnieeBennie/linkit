@@ -1,5 +1,7 @@
 import Parse from "./parse";
 
+/* ---------------------- HELPER FUNCTIONS ---------------------- */
+
 // Small helper to create an event pointer
 function eventPointer(id) {
   const Event = Parse.Object.extend("Events");
@@ -7,6 +9,31 @@ function eventPointer(id) {
   e.id = id;
   return e;
 }
+
+function createRegistration(user, event) {
+  const Registered = Parse.Object.extend("RegisteredEvents");
+  const reg = new Registered();
+  reg.set("user", user);
+  reg.set("event_id", event);
+
+  const acl = new Parse.ACL();
+  acl.setPublicReadAccess(true);
+  acl.setWriteAccess(user, true);
+  reg.setACL(acl);
+
+  return reg;
+}
+
+function extractEventIds(rows) {
+  return rows
+    .map((r) => {
+      const evt = r.get("event_id");
+      return evt ? evt.id : null;
+    })
+    .filter(Boolean);
+}
+
+/* ---------------------- PUBLIC API ---------------------- */
 
 // --- Register user for an event ---
 export async function registerForEvent(eventId) {
@@ -23,16 +50,7 @@ export async function registerForEvent(eventId) {
   if (existing) return existing;
 
   // Create registration
-  const Registered = Parse.Object.extend("RegisteredEvents");
-  const reg = new Registered();
-  reg.set("user", user);
-  reg.set("event_id", event);
-
-  const acl = new Parse.ACL();
-  acl.setPublicReadAccess(true);
-  acl.setWriteAccess(user, true);
-  reg.setACL(acl);
-
+  const reg = createRegistration(user, event);
   return reg.save();
 }
 
@@ -63,12 +81,7 @@ export async function getRegisteredEventIdsForCurrentUser() {
   q.include("event_id");
   const rows = await q.find();
 
-  return rows
-    .map((r) => {
-      const evt = r.get("event_id");
-      return evt ? evt.id : null;
-    })
-    .filter(Boolean);
+  return extractEventIds(rows);
 }
 
 export async function getRegistrationCountForEvent(eventId) {

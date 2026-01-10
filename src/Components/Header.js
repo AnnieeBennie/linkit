@@ -9,10 +9,26 @@ import SignUp from "../Components/SignUp";
 import ProfilePopup from "../Components/ProfilePopup";
 import Parse from "parse";
 
+/* ---------------------- HELPER FUNCTIONS ---------------------- */
+
+function isUserLoggedIn() {
+  return !!Parse.User.current();
+}
+
+/* ---------------------- COMPONENT ---------------------- */
+
 const Header = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+
+  function handleProfileClick() {
+    if (isUserLoggedIn()) {
+      setShowProfilePopup(true);
+    } else {
+      setShowLogin(true);
+    }
+  }
   return (
     <>
       <header className="navbar">
@@ -47,14 +63,7 @@ const Header = () => {
             src={ProfileIcon}
             alt="Profile"
             className="icon"
-            onClick={() => {
-              const user = Parse.User.current();
-              if (user) {
-                setShowProfilePopup(true); // show the "You are logged in as ..." popup
-              } else {
-                setShowLogin(true); // show login if not logged in
-              }
-            }}
+            onClick={handleProfileClick}
           />
         </div>
       </header>
@@ -77,8 +86,9 @@ const Header = () => {
           }}
         />
       )}
-      {showProfilePopup && (<ProfilePopup onClose={() => setShowProfilePopup(false)} />
-)}
+      {showProfilePopup && (
+        <ProfilePopup onClose={() => setShowProfilePopup(false)} />
+      )}
     </>
   );
 };

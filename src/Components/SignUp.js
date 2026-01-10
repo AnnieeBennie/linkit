@@ -3,6 +3,22 @@ import "../css/SignUp.css";
 import CloseIcon from "../Icons/close.svg";
 import { signUpUser } from "../services/userService";
 
+/* ---------------------- HELPER FUNCTIONS ---------------------- */
+
+function extractFormData(formElement) {
+  const form = new FormData(formElement);
+  return {
+    email: form.get("email"),
+    password: form.get("password"),
+  };
+}
+
+function notifyAuthChange() {
+  window.dispatchEvent(new Event("auth-change"));
+}
+
+/* ---------------------- COMPONENT ---------------------- */
+
 function SignUp({ onClose = () => {}, onSuccess = () => {} }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -12,19 +28,12 @@ function SignUp({ onClose = () => {}, onSuccess = () => {} }) {
     setLoading(true);
     setError("");
 
-    const form = new FormData(e.target);
-    const email = form.get("email");
-    const password = form.get("password");
+    const { email, password } = extractFormData(e.target);
 
     try {
       const user = await signUpUser({ email, password });
-
-      // notify parent
       onSuccess(user);
-
-      // tell the whole app that auth changed
-      window.dispatchEvent(new Event("auth-change"));
-
+      notifyAuthChange();
       onClose();
     } catch (err) {
       setError(err?.message || "Sign up failed");
