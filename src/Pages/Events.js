@@ -5,7 +5,7 @@ import EventFilter from "../Components/EventFilter";
 import { fetchEvents } from "../services/eventService";
 import { getRegisteredEventIdsForCurrentUser } from "../services/eventSignupService";
 
-// Helper Functions - Low-level operations
+// Helper Functions
 function sortEventsByDate(events) {
   return [...events].sort((a, b) => {
     const ta = a._startDate || Infinity;
@@ -37,7 +37,6 @@ function Events() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load and sort events
   useEffect(() => {
     fetchEvents()
       .then((data) => {
@@ -50,7 +49,6 @@ function Events() {
       });
   }, []);
 
-  // Load registered event IDs when filter changes
   useEffect(() => {
     async function loadRegistered() {
       if (filter !== "Registered Events") {
