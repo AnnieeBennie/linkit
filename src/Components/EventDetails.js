@@ -18,6 +18,28 @@ import Login from "./Login";
 import SignUp from "./SignUp";
 import { downloadICS } from "../services/calendarExport";
 
+/* ---------------------- HELPER FUNCTIONS ---------------------- */
+
+function generateGoingText(count) {
+  if (count === 0) return "Be the first to join";
+  if (count === 1) return "1 person is going";
+  if (typeof count === "number") return `${count} people are going`;
+  return "";
+}
+
+function validateEventDate(date) {
+  return date instanceof Date && !isNaN(date);
+}
+
+function calculateEndDate(startDate, endDate) {
+  if (validateEventDate(endDate)) {
+    return endDate;
+  }
+  return new Date(startDate.getTime() + 60 * 60 * 1000);
+}
+
+/* ---------------------- COMPONENT ---------------------- */
+
 function EventDetails({ event, onClose, onSignup, onUnsignup }) {
   const [registered, setRegistered] = useState(false);
   const [count, setCount] = useState(null);
@@ -75,18 +97,15 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     onClose?.();
   }
 
-  // 4) Add to calendar
+  // 3) Add to calendar
   function addToCalendar() {
-    if (!(event._startDate instanceof Date) || isNaN(event._startDate)) {
+    if (!validateEventDate(event._startDate)) {
       alert("Event date is not available.");
       return;
     }
 
     const start = event._startDate;
-    const end =
-      event._endDate instanceof Date && !isNaN(event._endDate)
-        ? event._endDate
-        : new Date(start.getTime() + 60 * 60 * 1000);
+    const end = calculateEndDate(start, event._endDate);
 
     downloadICS({
       title: event.title,
@@ -97,10 +116,7 @@ function EventDetails({ event, onClose, onSignup, onUnsignup }) {
     });
   }
 
-  let goingText = "";
-  if (count === 0) goingText = "Be the first to join";
-  else if (count === 1) goingText = "1 person is going";
-  else if (typeof count === "number") goingText = `${count} people are going`;
+  const goingText = generateGoingText(count);
 
   return (
     <div className="details-container">

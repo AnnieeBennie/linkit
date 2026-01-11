@@ -5,6 +5,31 @@ import EventFilter from "../Components/EventFilter";
 import { fetchEvents } from "../services/eventService";
 import { getRegisteredEventIdsForCurrentUser } from "../services/eventSignupService";
 
+// Helper Functions
+function sortEventsByDate(events) {
+  return [...events].sort((a, b) => {
+    const ta = a._startDate || Infinity;
+    const tb = b._startDate || Infinity;
+    return ta - tb;
+  });
+}
+
+function filterEventsByCategory(events, filter, registeredIds) {
+  if (!filter) return events;
+
+  if (filter === "Registered Events") {
+    return events.filter((e) => registeredIds.includes(e.id));
+  }
+
+  return events.filter((e) => e.category === filter);
+}
+
+function setupAuthChangeListener(callback) {
+  window.addEventListener("auth-change", callback);
+  return () => window.removeEventListener("auth-change", callback);
+}
+
+// Main Component
 function Events() {
   const [events, setEvents] = useState([]);
   const [filter, setFilter] = useState(null);
@@ -12,17 +37,10 @@ function Events() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- Load + Sort Events ---
   useEffect(() => {
     fetchEvents()
       .then((data) => {
-        setEvents(
-          data.sort((a, b) => {
-            const ta = a._startDate || Infinity;
-            const tb = b._startDate || Infinity;
-            return ta - tb;
-          })
-        );
+        setEvents(sortEventsByDate(data));
         setLoading(false);
       })
       .catch((err) => {
@@ -31,7 +49,6 @@ function Events() {
       });
   }, []);
 
-  // --- Load registered event IDs when needed ---
   useEffect(() => {
     async function loadRegistered() {
       if (filter !== "Registered Events") {
@@ -48,20 +65,11 @@ function Events() {
     }
 
     loadRegistered();
-
-    // refresh when login/logout happens
-    const handler = () => loadRegistered();
-    window.addEventListener("auth-change", handler);
-
-    return () => window.removeEventListener("auth-change", handler);
+    return setupAuthChangeListener(loadRegistered);
   }, [filter]);
 
-  // --- Apply Filter ---
-  const filteredEvents = filter
-    ? filter === "Registered Events"
-      ? events.filter((e) => registeredIds.includes(e.id))
-      : events.filter((e) => e.category === filter)
-    : events;
+  // Apply filtering
+  const filteredEvents = filterEventsByCategory(events, filter, registeredIds);
 
   if (loading) return <div className="PageTitle">Loading events…</div>;
   if (error) return <div className="PageTitle">Failed to load events</div>;
