@@ -34,9 +34,7 @@ function getEventDates(rawEvent) {
   return {
     _startDate,
     _endDate,
-    formattedDate: _startDate
-      ? formatDateRange(_startDate, _endDate)
-      : rawEvent.get("date") || "",
+    formattedDate: _startDate ? formatDateRange(_startDate, _endDate) : "",
   };
 }
 
