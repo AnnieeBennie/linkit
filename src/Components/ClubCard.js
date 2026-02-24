@@ -1,21 +1,35 @@
 import React, { useState } from "react";
 import "../css/Clubs.css";
 import ClubDetails from "./ClubDetails";
+import ClubSuccess from "./ClubSuccess";
+import { joinClub, leaveClub } from "../services/membershipService";
 
-function ClubCard({
-  club,
-  onToggleJoin,
-  isJoined,
-  loading = false,
-  onSuccess = () => {},
-}) {
+
+function ClubCard({club, isJoined}) {
   const [showDetails, setShowDetails] = useState(false);
+  const [isPending, setIsPending] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(null);
 
-  // Handle join/leave action and open success popup
+  // Handle join/leave 
   const handleJoin = async () => {
-    const wasJoined = isJoined;
-    await onToggleJoin(club.id);
-    onSuccess(wasJoined ? "leave" : "join");
+    if (isPending) return;
+
+    setIsPending(true);
+
+    try {
+      if (isJoined) {
+        await leaveClub(club.id);
+        setShowSuccess("leave");
+      } else {
+        await joinClub(club.id);
+        setShowSuccess("join");
+      }
+      
+      window.dispatchEvent(new Event("club-status-changed"));
+    } finally {
+      setIsPending(false);
+      setShowDetails(false);
+    }
   };
 
   return (
@@ -40,17 +54,14 @@ function ClubCard({
           {/* Join/Leave button */}
           <button
             className={isJoined ? "leave-btn" : "join-btn"}
-            onClick={() => {
-              setShowDetails(true);
-            }}
-            disabled={loading}
+            disabled={isPending}
           >
             {isJoined ? "Leave" : "Join"}
           </button>
         </div>
       </div>
 
-      {/* Details popup overlay with full club info and login */}
+      {/* Details popup */}
       {showDetails && (
         <div className="details-overlay" onClick={() => setShowDetails(false)}>
           <div className="details-modal" onClick={(e) => e.stopPropagation()}>
@@ -59,6 +70,21 @@ function ClubCard({
               onClose={() => setShowDetails(false)}
               onJoin={handleJoin}
               isJoined={isJoined}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Success modal */}
+      {showSuccess && (
+        <div className="details-success-overlay">
+          <div
+            className="details-success-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ClubSuccess
+              mode={showSuccess}
+              onClose={() => setShowSuccess(null)}
             />
           </div>
         </div>
