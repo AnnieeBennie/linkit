@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "../css/Calendar.css";
 import { fetchEvents } from "../services/eventService";
 import { getRegisteredEventIdsForCurrentUser } from "../services/eventSignupService";
@@ -6,42 +6,99 @@ import EventFilter from "../Components/EventFilter";
 import EventDetails from "../Components/EventDetails";
 import CalendarView from "../Components/CalendarView";
 
+const toDateKey = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+
+function getStartDate(ev) {
+  const value = ev._startDate ?? ev.date;
+  if (!value) return null;
+
+  const startDate = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(startDate.getTime())) return null;
+  return startDate;
+}
+
+function makeEventsByDate(events, filter, registeredIds) {
+  const map = {};
+
+  (events || []).forEach((ev) => {
+    if (filter === "Registered Events" && !registeredIds?.includes(ev.id))
+      return;
+    if (filter && filter !== "Registered Events" && ev.category !== filter)
+      return;
+
+    const start = getStartDate(ev);
+    if (!start) return;
+
+    const key = toDateKey(start);
+    (map[key] ||= []).push({ ...ev, _startDate: start });
+  });
+
+  Object.values(map).forEach((arr) =>
+    arr.sort((a, b) => a._startDate - b._startDate)
+  );
+  return map;
+}
+
 export default function Calendar() {
   const [events, setEvents] = useState([]);
   const [registeredIds, setRegisteredIds] = useState([]);
   const [filter, setFilter] = useState(null);
 
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showDetails, setShowDetails] = useState(false);
+  const [month, setMonth] = useState(new Date());
+  const [activeEvent, setActiveEvent] = useState(null); 
 
   const [loading, setLoading] = useState(true);
-  const [month, setMonth] = useState(new Date());
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    setLoading(true);
+  const eventsByDate = useMemo(
+    () => makeEventsByDate(events, filter, registeredIds),
+    [events, filter, registeredIds]
+  );
 
-    fetchEvents()
-      .then((data) => setEvents(data))
-      .catch((err) => setError(err))
-      .finally(() => setLoading(false));
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        setLoading(true);
+        const data = await fetchEvents();
+        setEvents(data);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadEvents();
   }, []);
 
-  async function refreshRegisteredIds() {
+  useEffect(() => {
+    async function loadRegisteredIds() {
+      if (filter !== "Registered Events") return;
+
+      try {
+        const ids = await getRegisteredEventIdsForCurrentUser();
+        setRegisteredIds(ids || []);
+      } catch (err) {
+        console.warn("Could not load registered ids", err);
+        setRegisteredIds([]);
+      }
+    }
+    loadRegisteredIds();
+  }, [filter]);
+
+  async function reloadRegisteredIdsIfNeeded() {
     if (filter !== "Registered Events") return;
 
     try {
       const ids = await getRegisteredEventIdsForCurrentUser();
       setRegisteredIds(ids || []);
     } catch (err) {
-      console.warn("Calendar: refresh registered ids failed", err);
+      console.warn("Could not reload registered ids", err);
       setRegisteredIds([]);
     }
   }
-
-  useEffect(() => {
-    refreshRegisteredIds();
-  }, [filter]);
 
   if (loading) return <div className="page">Loading events...</div>;
   if (error) return <div className="page">Could not load events</div>;
@@ -54,28 +111,23 @@ export default function Calendar() {
       <CalendarView
         month={month}
         onMonthChange={setMonth}
-        events={events}
-        filter={filter}
-        registeredIds={registeredIds}
-        onEventClick={(ev) => {
-          setSelectedEvent(ev);
-          setShowDetails(true);
-        }}
+        eventsByDate={eventsByDate}
+        onEventClick={setActiveEvent}
       />
 
-      {showDetails && selectedEvent && (
+      {activeEvent && (
         <div
           className="details-overlay"
           role="dialog"
           aria-modal="true"
-          onClick={() => setShowDetails(false)}
+          onClick={() => setActiveEvent(null)} 
         >
           <div className="details-modal" onClick={(e) => e.stopPropagation()}>
             <EventDetails
-              event={selectedEvent}
-              onClose={() => setShowDetails(false)}
-              onSignup={refreshRegisteredIds}
-              onUnsignup={refreshRegisteredIds}
+              event={activeEvent}
+              onClose={() => setActiveEvent(null)}
+              onSignup={reloadRegisteredIdsIfNeeded}
+              onUnsignup={reloadRegisteredIdsIfNeeded}
             />
           </div>
         </div>
