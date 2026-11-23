@@ -25,6 +25,15 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>React App</title>
+    <script>
+      (function () {
+        var redirect = window.location.search.match(/[?&]\/(.*)/);
+        if (redirect) {
+          var path = "/linkit/" + redirect[1];
+          window.history.replaceState(null, "", path);
+        }
+      })();
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

@@ -16,7 +16,7 @@ import Settings from "./Pages/Settings";
 
 export default function App() {
   return (
-    <Router>
+    <Router basename="/linkit">
       <Header />
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
