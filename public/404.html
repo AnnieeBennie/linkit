@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>LinkIt</title>
+    <script>
+      (function () {
+        var base = "/linkit";
+        var path = window.location.pathname;
+        var relativePath = path.startsWith(base + "/")
+          ? path.slice(base.length)
+          : path;
+        var redirect = base + "/?/" + relativePath.slice(1);
+        if (window.location.search) {
+          redirect += "&" + window.location.search.slice(1);
+        }
+        window.location.replace(redirect + window.location.hash);
+      })();
+    </script>
+  </head>
+  <body></body>
+</html>
